@@ -1,0 +1,37 @@
+TOOLBELT="/Users/philippaebischer/toolbelt"
+
+
+
+#  ____       _____
+# |  _ \ _   |_   _|__ _ __ ___  _ __
+# | |_) | | | || |/ _ \ '_ ` _ \| '_ \
+# |  __/| |_| || |  __/ | | | | | |_) |
+# |_|    \__, ||_|\___|_| |_| |_| .__/
+#        |___/                  |_|
+
+source "$TOOLBELT/pytemp/pytemp.zsh"
+
+
+
+#       _ _
+#   ___| | | __
+#  / __| | |/ /
+# | (__| |   <
+#  \___|_|_|\_\
+
+# wrap in () runs the command in a subshell
+clk() { (cd "$TOOLBELT/clk"; uv run clk;) }
+
+
+
+#  _     _____ ___
+# | |   | ____/ _ \  ___  _ __ __ _
+# | |   |  _|| | | |/ _ \| '__/ _` |
+# | |___| |__| |_| | (_) | | | (_| |
+# |_____|_____\___(_)___/|_|  \__, |
+#                             |___/
+
+fen() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t de -f en -m 6 "$@";) }
+ten() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t en -f de -m 6 "$@";) }
+tfr() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t fr -f de -m 6 "$@";) }
+ffr() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t de -f fr -m 6 "$@";) }
