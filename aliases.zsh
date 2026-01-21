@@ -20,7 +20,7 @@ source "$TOOLBELT/pytemp/pytemp.zsh"
 #  \___|_|_|\_\
 
 # wrap in () runs the command in a subshell
-clk() { (cd "$TOOLBELT/clk"; uv run clk;) }
+clk() { (cd "$TOOLBELT/clk"; uv run clk "$@";) }
 
 
 
