@@ -12,3 +12,5 @@ wheels/
 # MacOS
 .DS_Store
 
+# Other tools
+.obisidian

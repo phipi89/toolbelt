@@ -35,3 +35,16 @@ fen() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t de -f en -m 6 "$@";) }
 ten() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t en -f de -m 6 "$@";) }
 tfr() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t fr -f de -m 6 "$@";) }
 ffr() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t de -f fr -m 6 "$@";) }
+
+
+
+#            _          
+#  _ __ ___ (_)___  ___ 
+# | '_ ` _ \| / __|/ __|
+# | | | | | | \__ \ (__ 
+# |_| |_| |_|_|___/\___|
+#                       
+
+alias textitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/textitle.py'
+
+ask(){ gemini -p "$*"; }
