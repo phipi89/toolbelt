@@ -2,6 +2,16 @@ TOOLBELT="/Users/philippaebischer/toolbelt"
 
 
 
+#                   
+#  _ __ _   _ _ __  
+# | '__| | | | '_ \ 
+# | |  | |_| | | | |
+# |_|   \__,_|_| |_|
+#                   
+
+run() { (cd "$TOOLBELT/run" || return 1; uv run run;) }
+
+
 #  ____       _____
 # |  _ \ _   |_   _|__ _ __ ___  _ __
 # | |_) | | | || |/ _ \ '_ ` _ \| '_ \
