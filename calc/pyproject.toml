@@ -1,0 +1,16 @@
+[project]
+name = "calc"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "ipython>=9.9.0",
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.1",
+]
+
+
+[project.scripts]
+calc = "calc:main"
+
+[tool.uv]
+package = true

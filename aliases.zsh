@@ -2,12 +2,12 @@ TOOLBELT="/Users/philippaebischer/toolbelt"
 
 
 
-#                   
-#  _ __ _   _ _ __  
-# | '__| | | | '_ \ 
+#
+#  _ __ _   _ _ __
+# | '__| | | | '_ \
 # | |  | |_| | | | |
 # |_|   \__,_|_| |_|
-#                   
+#
 
 run() { (cd "$TOOLBELT/run" || return 1; uv run run;) }
 
@@ -48,13 +48,24 @@ ffr() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t de -f fr -m 6 "$@";) }
 
 
 
-#            _          
-#  _ __ ___ (_)___  ___ 
+#            _
+#  _ __ ___ (_)___  ___
 # | '_ ` _ \| / __|/ __|
-# | | | | | | \__ \ (__ 
+# | | | | | | \__ \ (__
 # |_| |_| |_|_|___/\___|
-#                       
+#
 
 alias textitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/textitle.py'
+alias pytitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/textitle.py --prefix "#"'
 
 ask(){ gemini -p "$*"; }
+
+
+#            _
+#   ___ __ _| | ___
+#  / __/ _` | |/ __|
+# | (_| (_| | | (__
+#  \___\__,_|_|\___|
+#
+
+calc() { (cd "$TOOLBELT/calc" || return 1; uv run calc;) }
