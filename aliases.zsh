@@ -1,4 +1,4 @@
-TOOLBELT="/Users/philippaebischer/toolbelt"
+TOOLBELT="$HOME/toolbelt"
 
 
 
