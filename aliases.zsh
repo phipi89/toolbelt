@@ -60,6 +60,8 @@ alias pytitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/text
 
 ask(){ gemini -p "$*"; }
 
+source "$TOOLBELT/grab/grab.sh"
+
 
 #            _
 #   ___ __ _| | ___
