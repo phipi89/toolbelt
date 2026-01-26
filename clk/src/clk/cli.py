@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime, timedelta
 
@@ -243,6 +244,11 @@ def cmd_report(_args):
     return 0
 
 
+def cmd_edit(args):
+    subprocess.run(["open", PATH])
+    return 0
+
+
 def cmd_start(args):
     db = load()
     if current_session(db):
@@ -345,6 +351,9 @@ def cmd_undo(_args):
 def main(argv=None):
     p = argparse.ArgumentParser(prog="clk", add_help=True)
     sub = p.add_subparsers(dest="cmd")
+
+    pt = sub.add_parser("edit", help="edit directly the json log file")
+    pt.set_defaults(fn=cmd_edit)
 
     ps = sub.add_parser("start", help="start a session")
     ps.add_argument(
