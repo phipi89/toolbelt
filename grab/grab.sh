@@ -6,7 +6,7 @@ grab() {
   fi
 
   local target_path
-  target_path=$(osascript "$TOOLBELT/grab/get_finder_path.osa")
+  target_path=$(osascript "$TOOLBELT/grab/get-finder-path.osa")
 
   if [[ -d "$target_path" ]]; then
     cd "$target_path"
