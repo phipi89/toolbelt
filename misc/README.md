@@ -1,7 +1,11 @@
 ## Miscellaneous
 
-These tools are envisioned to be small snippets. There's a playground `uv` virtual envirnoment for building and testing. When happy, move the command to `../aliases.zsh`, using `uv --no-project`. Example:
+A collection of smaller, miscellaneous snippets.
+For python based tools, we might skip building dedicated envs and use a shebang with metadata block to define dependencies:
 
-```bash
-alias textitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/textitle.py'
+```sh
+#!/usr/bin/env -S uv run
+# /// script
+# dependencies = ["pyperclip", "pyfiglet"]
+# ///
 ```
