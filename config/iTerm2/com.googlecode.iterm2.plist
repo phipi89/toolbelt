@@ -4,16 +4,8 @@
 <dict>
 	<key>AlternateMouseScroll</key>
 	<true/>
-	<key>AppleAntiAliasingThreshold</key>
-	<integer>1</integer>
-	<key>ApplePressAndHoldEnabled</key>
-	<false/>
-	<key>AppleScrollAnimationEnabled</key>
-	<integer>0</integer>
-	<key>AppleSmoothFixedFontsSizeThreshold</key>
-	<integer>1</integer>
-	<key>AppleWindowTabbingMode</key>
-	<string>manual</string>
+	<key>Command</key>
+	<string>zsh-c"echo;"</string>
 	<key>Default Bookmark Guid</key>
 	<string>4AE53D0A-396B-460A-A99A-4B784C8533B6</string>
 	<key>GlobalKeyMap</key>
@@ -2885,13 +2877,13 @@
 				<key>Alpha Component</key>
 				<real>1</real>
 				<key>Blue Component</key>
-				<real>0.24456787109375</real>
+				<real>0.42036190120964534</real>
 				<key>Color Space</key>
 				<string>sRGB</string>
 				<key>Green Component</key>
-				<real>0.2140789870172739</real>
+				<real>0.24827356962487102</real>
 				<key>Red Component</key>
-				<real>0.21916294888842458</real>
+				<real>0.871917724609375</real>
 			</dict>
 			<key>Background Image Location</key>
 			<string></string>
@@ -2910,12 +2902,14 @@
 			</dict>
 			<key>Blend</key>
 			<real>0.5</real>
-			<key>Blinking Cursor</key>
+			<key>Blink Allowed</key>
 			<false/>
+			<key>Blinking Cursor</key>
+			<true/>
 			<key>Blur</key>
 			<true/>
 			<key>Blur Radius</key>
-			<real>64</real>
+			<real>15.855485372340425</real>
 			<key>Bold Color</key>
 			<dict>
 				<key>Blue Component</key>
@@ -2932,11 +2926,11 @@
 			<key>Character Encoding</key>
 			<integer>4</integer>
 			<key>Close Sessions On End</key>
-			<true/>
+			<integer>1</integer>
 			<key>Columns</key>
 			<integer>60</integer>
 			<key>Command</key>
-			<string>zsh -c "clear; echo; /Users/philippaebischer/.local/bin/uv run run &amp;&amp; exit"</string>
+			<string>zsh -ic "$HOME/toolbelt/run/launch_run.sh"</string>
 			<key>Cursor Boost</key>
 			<real>0.0</real>
 			<key>Cursor Color</key>
@@ -2971,7 +2965,7 @@
 				<real>1</real>
 			</dict>
 			<key>Cursor Type</key>
-			<integer>2</integer>
+			<integer>1</integer>
 			<key>Custom Command</key>
 			<string>Yes</string>
 			<key>Custom Directory</key>
@@ -2990,12 +2984,16 @@
 			<false/>
 			<key>Foreground Color</key>
 			<dict>
+				<key>Alpha Component</key>
+				<real>1</real>
 				<key>Blue Component</key>
-				<real>0.73333334922790527</real>
+				<real>0.80551624298095703</real>
+				<key>Color Space</key>
+				<string>sRGB</string>
 				<key>Green Component</key>
-				<real>0.73333334922790527</real>
+				<real>0.926422119140625</real>
 				<key>Red Component</key>
-				<real>0.73333334922790527</real>
+				<real>0.90455663384636864</real>
 			</dict>
 			<key>Guid</key>
 			<string>2C0DD179-BAB2-42D8-BFD9-AF760A4E3AD2</string>
@@ -3491,7 +3489,7 @@
 			<key>Non-ASCII Anti Aliased</key>
 			<true/>
 			<key>Normal Font</key>
-			<string>FiraCode-Regular 14</string>
+			<string>FiraCode-Medium 16</string>
 			<key>Only The Default BG Color Uses Transparency</key>
 			<false/>
 			<key>Open Toolbelt</key>
@@ -3547,7 +3545,7 @@
 			<key>Thin Strokes</key>
 			<integer>4</integer>
 			<key>Transparency</key>
-			<real>0.18789893617021278</real>
+			<real>0.21240857712765959</real>
 			<key>Unicode Normalization</key>
 			<integer>0</integer>
 			<key>Unlimited Scrollback</key>
@@ -3615,14 +3613,18 @@
 	<false/>
 	<key>ShowFullScreenTabBar</key>
 	<false/>
+	<key>SmartPlacement</key>
+	<true/>
 	<key>SoundForEsc</key>
 	<false/>
 	<key>SplitPaneDimmingAmount</key>
-	<real>0.40416186286407768</real>
+	<real>0.40311020934466019</real>
 	<key>StatusBarPosition</key>
 	<integer>0</integer>
+	<key>SuppressRestartAnnouncement</key>
+	<true/>
 	<key>TabStyleWithAutomaticOption</key>
-	<integer>0</integer>
+	<integer>5</integer>
 	<key>TabViewType</key>
 	<integer>0</integer>
 	<key>ToolbeltTools</key>

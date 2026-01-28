@@ -11,7 +11,10 @@ from prompt_toolkit.styles import Style
 
 def interactive(items):
     items = list(items)
-    completer = WordCompleter(items, ignore_case=True, match_middle=True)
+    display_dict = {item: f"{item} " for item in items}  # add trailing padding
+    completer = WordCompleter(
+        items, display_dict=display_dict, ignore_case=True, match_middle=True
+    )
     kb = KeyBindings()
     style = Style.from_dict(
         {
@@ -47,12 +50,28 @@ def interactive(items):
         b.validate_and_handle()
 
     @kb.add("escape", "enter")  # Cmd+Enter in many macOS terminals
+    @kb.add("1")
+    @kb.add("2")
+    @kb.add("3")
+    @kb.add("4")
+    @kb.add("5")
+    @kb.add("6")
+    @kb.add("7")
+    @kb.add("8")
+    @kb.add("9")
     def _(event):
-        b = event.app.current_buffer
-        accept_best_completion(b)
-        event.app.exit(result=("PARENT", b.text))
+        buf = event.app.current_buffer
+        # If the completion menu is active, use the number to select
+        if buf.complete_state and buf.complete_state.completions:
+            index = int(event.data) - 1
+            if index < len(buf.complete_state.completions):
+                buf.apply_completion(buf.complete_state.completions[index])
+                buf.validate_and_handle()
+                return
+        # Otherwise, just type the number normally
+        buf.insert_text(event.data)
 
-    result = session.prompt("> ")
+    result = session.prompt(" > ")
     return ("OPEN", result)
 
 
