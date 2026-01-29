@@ -1,0 +1,12 @@
+# Window Management Rules
+apps:
+  "Firefox": "spawn_new"
+  "Google Chrome": "spawn_new"
+  "Sublime Text": "spawn_new"
+  "Obsidian": "select"
+  "3D Slicer": "select"
+  "VSCodium": "select"
+  "iTerm": "spawn_new"
+  "Finder": "spawn_new"
+
+default_action: "goto"
