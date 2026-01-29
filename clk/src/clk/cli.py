@@ -228,14 +228,18 @@ def current_state_text(db):
 
 def print_report(db):
     print(current_state_text(db))
-    totals = daily_totals(db, 7)
+    totals = daily_totals(db, 7 + 1)
     days = sorted(totals.keys())
-    wk = sum((totals[d] for d in days), timedelta(0))
-    print("\nLast 7 days:")
+    wk = sum((totals[d] for d in days[:-1]), timedelta(0))
+    print("\nPrevious 8 days:")
     for d in days:
         label = d.strftime("%a %Y-%m-%d")
         print(f"  {label}: {fmt_td(totals[d])}")
-    print(f"  Total: {fmt_td(wk)}")
+
+    target = timedelta(hours=42 * 0.8)
+    print(
+        f"  Total (excl. today): {fmt_td(wk)} ({(wk - target).total_seconds() // 60:+n}m)"
+    )
 
 
 def cmd_report(_args):
