@@ -259,7 +259,7 @@
                                     "key_code": "f",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "key_code": "f18" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh Firefox" }],
                                 "type": "basic"
                             },
                             {
@@ -267,7 +267,7 @@
                                     "key_code": "v",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "open -a 'VSCodium.app'" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh VSCodium" }],
                                 "type": "basic"
                             },
                             {
@@ -275,7 +275,7 @@
                                     "key_code": "z",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "open -a 'Zed.app'" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh Zed" }],
                                 "type": "basic"
                             },
                             {
@@ -283,7 +283,7 @@
                                     "key_code": "i",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "open -a 'iTerm.app'" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh iTerm" }],
                                 "type": "basic"
                             },
                             {
@@ -291,7 +291,7 @@
                                     "key_code": "d",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "open -a 'Finder.app'" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh Finder" }],
                                 "type": "basic"
                             },
                             {
@@ -299,7 +299,7 @@
                                     "key_code": "o",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "key_code": "f19" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh Obsidian > /tmp/karabiner_debug.log 2>&1" }],
                                 "type": "basic"
                             },
                             {
@@ -307,7 +307,7 @@
                                     "key_code": "m",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "open -a 'Mail.app'" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh 'Outlook (PWA)'" }],
                                 "type": "basic"
                             },
                             {
@@ -323,15 +323,7 @@
                                     "key_code": "s",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "open -a 'Signal.app'" }],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "key_code": "c",
-                                    "modifiers": { "mandatory": ["right_gui"] }
-                                },
-                                "to": [{ "shell_command": "open -a 'Chapity.app'" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh Signal" }],
                                 "type": "basic"
                             },
                             {
@@ -339,15 +331,7 @@
                                     "key_code": "t",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "open -a 'Sublime Text.app'" }],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "key_code": "b",
-                                    "modifiers": { "mandatory": ["right_gui"] }
-                                },
-                                "to": [{ "shell_command": "/opt/homebrew/bin/ttab -w -s 'Launcher' 'clear; echo; run' &" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh 'Sublime Text'" }],
                                 "type": "basic"
                             },
                             {
