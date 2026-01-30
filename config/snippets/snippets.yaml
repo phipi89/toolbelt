@@ -1,0 +1,34 @@
+py:
+  init: |
+    %load_ext autoreload
+    %autoreload 2
+    import numpy as np
+    import eartools.utils as earutils
+
+  shebang: |
+    #!/usr/bin/env -S uv run
+    # /// script
+    # dependencies = ["pyperclip", "pyfiglet"]
+    # ///
+  eartools: |
+    [tool.uv.sources]
+    eartools = { path = "/Users/philippaebischer/Documents/HRL/Projects/HRL Software Tool", editable = true}
+
+
+text:
+  signature: |
+    Philipp Aebischer
+
+    Hearing Research Laboratory
+    ARTORG Center for Biomedical Engineering Research
+    University of Bern
+    Murtenstrasse 50 | CH-3008 Bern
+     
+    Department of Otolaryngology, Head and Neck Surgery
+    Bern University Hospital, Inselspital
+    Freiburgstrasse 18 | CH-3010 Bern
+     
+    www.artorg.unibe.ch/research/hrl
+    philipp.aebischer@unibe.ch
+    +41 31 684 14 25
+

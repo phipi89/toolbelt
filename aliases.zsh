@@ -62,7 +62,7 @@ ask(){ gemini -p "$*"; }
 
 source "$TOOLBELT/grab/grab.sh"
 source "$TOOLBELT/misc/yank-to-clipboard.sh"
-
+snippets() { (cd "$TOOLBELT/misc" || return 1; uv run snippets.py;) }
 
 
 #            _
