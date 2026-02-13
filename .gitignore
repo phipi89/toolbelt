@@ -1,6 +1,7 @@
 # Project internals I don't want to share
 auth.zsh
 notes.md
+config/private/
 
 
 # Python-generated files
@@ -22,3 +23,6 @@ wheels/
 
 # Other tools
 .obsidian/
+
+config/karabiner/assets/
+config/karabiner/automatic_backups/

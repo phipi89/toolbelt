@@ -4,31 +4,6 @@
             "complex_modifications": {
                 "rules": [
                     {
-                        "description": "Right Cmd + Space -> new iTerm tab + center window",
-                        "enabled": false,
-                        "manipulators": [
-                            {
-                                "from": {
-                                    "key_code": "spacebar",
-                                    "modifiers": {
-                                        "mandatory": ["right_gui"],
-                                        "optional": ["any"]
-                                    }
-                                },
-                                "to": [{ "shell_command": "osascript -e 'tell application \"iTerm\" to activate' -e 'tell application \"iTerm\" to tell current window to create window with profile \"toolbelt\"'" }],
-                                "to_delayed_action": {
-                                    "to_if_invoked": [
-                                        {
-                                            "key_code": "c",
-                                            "modifiers": ["fn", "control"]
-                                        }
-                                    ]
-                                },
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
                         "description": "Cmd-Shift-V -> strip formatting then paste",
                         "manipulators": [
                             {
@@ -39,7 +14,7 @@
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [{ "shell_command": "pbpaste | pbcopy; sleep 0.1; osascript -e 'tell application \"System Events\" to keystroke \"v\" using command down'" }],
+                                "to": [{ "shell_command": "pbpaste | pbcopy; sleep 0.1" }],
                                 "type": "basic"
                             }
                         ]
@@ -55,12 +30,7 @@
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [
-                                    {
-                                        "key_code": "left_arrow",
-                                        "modifiers": ["control", "fn"]
-                                    }
-                                ],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/move/left.sh" }],
                                 "type": "basic"
                             },
                             {
@@ -71,12 +41,7 @@
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [
-                                    {
-                                        "key_code": "right_arrow",
-                                        "modifiers": ["control", "fn"]
-                                    }
-                                ],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/move/right.sh" }],
                                 "type": "basic"
                             },
                             {
@@ -87,12 +52,7 @@
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [
-                                    {
-                                        "key_code": "keypad_plus",
-                                        "modifiers": ["shift", "control", "option", "command"]
-                                    }
-                                ],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/move/center.sh" }],
                                 "type": "basic"
                             },
                             {
@@ -267,12 +227,12 @@
                                     "key_code": "v",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh VSCodium" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh 'Visual Studio Code'" }],
                                 "type": "basic"
                             },
                             {
                                 "from": {
-                                    "key_code": "z",
+                                    "key_code": "r",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
                                 "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh Zed" }],
@@ -283,7 +243,7 @@
                                     "key_code": "i",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh iTerm" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh iTerm2" }],
                                 "type": "basic"
                             },
                             {
@@ -299,7 +259,7 @@
                                     "key_code": "o",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh Obsidian > /tmp/karabiner_debug.log 2>&1" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh Obsidian" }],
                                 "type": "basic"
                             },
                             {
@@ -307,7 +267,7 @@
                                     "key_code": "m",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh 'Outlook (PWA)'" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/misc/compose_mail.sh" }],
                                 "type": "basic"
                             },
                             {
