@@ -6,7 +6,7 @@ apps:
   "Obsidian": "select"
   "3D Slicer": "select"
   "VSCodium": "select"
-  "iTerm": "spawn_new"
+  "iTerm2": "spawn_new"
   "Finder": "spawn_new"
 
 default_action: "goto"

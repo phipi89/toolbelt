@@ -1,6 +1,7 @@
 #!/bin/zsh
 
-source "$HOME/toolbelt/path.sh"
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
 
 APP_NAME=$1
 CONFIG_PATH="$HOME/toolbelt/config/window_management/setup.yaml"
