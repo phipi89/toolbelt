@@ -77,14 +77,21 @@ def interactive(items):
 
 def main():
     items = []
-    for base in (pathlib.Path("/"), pathlib.Path.home()):
+    for base in (pathlib.Path("/"), pathlib.Path("/System"), pathlib.Path.home()):
         app_dir = base / "Applications"
         items += list(app_dir.glob("*.app"))
         items += list(app_dir.glob("*/*.app"))
 
     apps = {p.stem: p for p in items}
 
-    action, selection = interactive(apps.keys())
+    exclude_words = ["install", "dienst", "service", "entfernen"]
+
+    def include(word):
+        return not any([e in word.lower() for e in exclude_words])
+
+    app_names = [name for name in apps.keys() if include(name)]
+
+    action, selection = interactive(app_names)
     if selection not in apps:
         raise SystemExit(f"Not found: {selection}")
 
