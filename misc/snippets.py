@@ -4,6 +4,8 @@
 # ///
 
 import pathlib
+import subprocess
+import time
 
 import pyperclip
 import yaml
@@ -102,7 +104,7 @@ def main():
                 snippets[category] = items
 
     if not snippets:
-        print("⚠️ No snippets found in YAML.")
+        print("No snippets found in YAML.")
         return
 
     selection = interactive(snippets.keys())
@@ -110,11 +112,17 @@ def main():
     if selection in snippets:
         content = snippets[selection].strip()
         pyperclip.copy(content)
-        print(f"✨ Copied to clipboard!")
+        print(f"Copied to clipboard!")
 
-        # Optional: Hide iTerm hotkey window after copying
-        # import os
-        # os.system('osascript -e "tell application \\"iTerm2\\" to hide (every window whose name contains \\"Hotkey\\")"')
+        hide_cmd = 'tell application "System Events" to set visible of process "iTerm2" to false'
+        subprocess.run(["osascript", "-e", hide_cmd])
+
+        time.sleep(0.15)
+
+        paste_cmd = (
+            'tell application "System Events" to keystroke "v" using {command down}'
+        )
+        subprocess.run(["osascript", "-e", paste_cmd])
     else:
         print("❌ Selection not found.")
 
