@@ -301,6 +301,14 @@
                                 },
                                 "to": [{ "key_code": "f15" }],
                                 "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "c",
+                                    "modifiers": { "mandatory": ["right_gui"] }
+                                },
+                                "to": [{ "key_code": "f16" }],
+                                "type": "basic"
                             }
                         ]
                     }
