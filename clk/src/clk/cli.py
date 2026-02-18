@@ -1,10 +1,15 @@
+"""
+A vibe coded cli tool to keep track of my working hours.
+Be sure your system backs up `~/.clk_log.json`.
+"""
+
 import argparse
 import json
 import os
 import re
 import subprocess
 import sys
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 try:
     from zoneinfo import ZoneInfo
@@ -111,55 +116,130 @@ def clamp_interval(a0, a1, b0, b1):
     return (s, e) if e > s else None
 
 
-def parse_start_arg(arg, base):
-    if arg is None:
-        return base - timedelta(minutes=1)
-    m = re.fullmatch(r"([+-]?\d+)", arg.strip())
-    if m:
-        mins = int(m.group(1))
-        return base + timedelta(minutes=mins)
-    a = arg.strip()
-    m = re.fullmatch(r"(\d{1,2})(?::|h)?(\d{2})", a)
-    if not m:
-        raise ValueError(
-            f"Unrecognized time format: {arg!r} (use -7, 0705, 07:05, 07h05)"
-        )
-    hh = int(m.group(1))
-    mm = int(m.group(2))
-    if not (0 <= hh <= 23 and 0 <= mm <= 59):
-        raise ValueError(f"Invalid time: {arg!r}")
-    cand = base.replace(hour=hh, minute=mm, second=0, microsecond=0)
-    if cand > base + timedelta(minutes=2):
-        cand -= timedelta(days=1)
-    return cand
+class ParseError(ValueError):
+    pass
 
 
-def parse_end_arg(arg, base):
-    if arg is None:
-        return base + timedelta(minutes=1)
-    m = re.fullmatch(r"([+-]?\d+)", arg.strip())
-    if m:
-        mins = int(m.group(1))
-        return base + timedelta(minutes=mins)
-    raise ValueError(
-        "end/stop only supports minute offsets like: clk end or clk end +5 or clk end -2"
+def parsing_overview():
+    return (
+        "Formatting options:\n"
+        "  timepoint: HH:MM (also HHMM, HHhMM), or signed delta like -34m / +1h32m\n"
+        "  interval:  <timepoint>--<timepoint>\n"
+        "  start/end: clk start [timepoint], clk end [timepoint]\n"
+        "  break:     clk break, clk break <timepoint>, clk break <start> <+/-duration>, clk break <start--end>\n"
+        "  session:   clk session [DD.MM.YY] <start--end>\n"
+        "             clk session [DD.MM.YY] <start--(break_start--break_end)--end>"
     )
 
 
-def parse_duration(s):
-    if s is None:
-        return None
-    t = s.strip().lower()
-    if not t:
-        return None
-    m = re.fullmatch(r"(?:(\d+)h)?(?:(\d+)m)?", t)
-    if not m or (m.group(1) is None and m.group(2) is None):
-        raise ValueError("Invalid duration. Examples: 15m, 2h, 1h5m")
-    h = int(m.group(1) or 0)
-    mm = int(m.group(2) or 0)
+def parse_signed_delta(token):
+    t = token.strip().lower()
+    m = re.fullmatch(r"([+-])(?:(\d+)h)?(?:(\d+)m)?", t)
+    if not m or (m.group(2) is None and m.group(3) is None):
+        raise ParseError(f"Invalid signed delta: {token!r}")
+    h = int(m.group(2) or 0)
+    mm = int(m.group(3) or 0)
     if h == 0 and mm == 0:
-        raise ValueError("Duration must be > 0")
-    return timedelta(hours=h, minutes=mm)
+        raise ParseError("Duration must be non-zero.")
+    delta = timedelta(hours=h, minutes=mm)
+    return -delta if m.group(1) == "-" else delta
+
+
+def parse_clock_time(token):
+    t = token.strip().lower()
+    m = re.fullmatch(r"(\d{1,2})(?::|h)?(\d{2})", t)
+    if not m:
+        raise ParseError(f"Invalid clock time: {token!r}")
+    hh = int(m.group(1))
+    mm = int(m.group(2))
+    if not (0 <= hh <= 23 and 0 <= mm <= 59):
+        raise ParseError(f"Invalid clock time: {token!r}")
+    return hh, mm
+
+
+def parse_date_token(token):
+    m = re.fullmatch(r"(\d{1,2})\.(\d{1,2})\.(\d{2,4})", token.strip())
+    if not m:
+        raise ParseError(f"Invalid date: {token!r}")
+    d = int(m.group(1))
+    mo = int(m.group(2))
+    y = int(m.group(3))
+    if y < 100:
+        y += 2000
+    try:
+        return date(y, mo, d)
+    except ValueError:
+        raise ParseError(f"Invalid date: {token!r}")
+
+
+def parse_timepoint(token, ref, fixed_date=None):
+    t = token.strip()
+    try:
+        return ref + parse_signed_delta(t)
+    except ParseError:
+        pass
+    hh, mm = parse_clock_time(t)
+    day = fixed_date or ref.date()
+    out = datetime.combine(day, datetime.min.time(), tzinfo=ref.tzinfo).replace(
+        hour=hh, minute=mm
+    )
+    return out
+
+
+def split_top_level(text, sep="--"):
+    parts = []
+    buf = []
+    depth = 0
+    i = 0
+    while i < len(text):
+        c = text[i]
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+            if depth < 0:
+                raise ParseError("Unbalanced parenthesis.")
+        if depth == 0 and text.startswith(sep, i):
+            parts.append("".join(buf).strip())
+            buf = []
+            i += len(sep)
+            continue
+        buf.append(c)
+        i += 1
+    if depth != 0:
+        raise ParseError("Unbalanced parenthesis.")
+    parts.append("".join(buf).strip())
+    return parts
+
+
+def parse_interval(expr, ref, fixed_date=None):
+    parts = split_top_level(expr, "--")
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        raise ParseError(f"Invalid interval: {expr!r}")
+    a = parse_timepoint(parts[0], ref, fixed_date=fixed_date)
+    b = parse_timepoint(parts[1], ref, fixed_date=fixed_date)
+    if b <= a:
+        raise ParseError("Interval end must be after start.")
+    return a, b
+
+
+def parse_session_spec(spec, ref, fixed_date):
+    parts = split_top_level(spec, "--")
+    if len(parts) < 2:
+        raise ParseError("Session range is missing '--'.")
+    start = parse_timepoint(parts[0], ref, fixed_date=fixed_date)
+    end = parse_timepoint(parts[-1], ref, fixed_date=fixed_date)
+    if end <= start:
+        raise ParseError("Session end must be after start.")
+    breaks = []
+    for part in parts[1:-1]:
+        if not (part.startswith("(") and part.endswith(")")):
+            raise ParseError(f"Expected break block in parentheses, got: {part!r}")
+        b0, b1 = parse_interval(part[1:-1], ref, fixed_date=fixed_date)
+        if b0 < start or b1 > end:
+            raise ParseError("Break must be within session bounds.")
+        breaks.append((b0, b1))
+    return start, end, breaks
 
 
 def session_bounds(sess):
@@ -260,7 +340,7 @@ def cmd_start(args):
         print(current_state_text(db))
         return 1
     db_before = json.loads(json.dumps(db))
-    t0 = parse_start_arg(args.when, now())
+    t0 = now() if args.when is None else parse_timepoint(args.when, now())
     db["sessions"].append({"start": dt_to_s(t0), "end": None, "breaks": []})
     push_undo(db_before, db)
     save(db)
@@ -277,7 +357,7 @@ def cmd_end(args):
         print(current_state_text(db))
         return 1
     db_before = json.loads(json.dumps(db))
-    t1 = parse_end_arg(args.when, now())
+    t1 = now() if args.when is None else parse_timepoint(args.when, now())
     b = active_break(sess)
     if b:
         b["end"] = dt_to_s(t1)
@@ -303,40 +383,98 @@ def cmd_break(args):
         return 1
 
     n = now()
-    dur = parse_duration(args.duration) if args.duration else None
+    values = args.values or []
     db_before = json.loads(json.dumps(db))
-
-    if dur:
-        endp = n  # + timedelta(minutes=1)
-        startp = endp - dur  # - timedelta(minutes=1)
-        sess.setdefault("breaks", []).append(
-            {"start": dt_to_s(startp), "end": dt_to_s(endp)}
-        )
-        push_undo(db_before, db)
-        save(db)
-        print(
-            f"Break added:   {startp.strftime('%Y-%m-%d %H:%M')} → {endp.strftime('%H:%M')} (net {fmt_td(dur)})"
-        )
-        print(current_state_text(db))
-        return 0
-
-    b = active_break(sess)
-    if not b:
-        t0 = n + timedelta(minutes=1)
-        sess.setdefault("breaks", []).append({"start": dt_to_s(t0), "end": None})
-        push_undo(db_before, db)
-        save(db)
-        print(f"Break started: {t0.strftime('%Y-%m-%d %H:%M')}")
-        print(current_state_text(db))
-        return 0
-    else:
-        t1 = n - timedelta(minutes=1)
+    if len(values) == 0:
+        b = active_break(sess)
+        if not b:
+            t0 = n
+            sess.setdefault("breaks", []).append({"start": dt_to_s(t0), "end": None})
+            push_undo(db_before, db)
+            save(db)
+            print(f"Break started: {t0.strftime('%Y-%m-%d %H:%M')}")
+            print(current_state_text(db))
+            return 0
+        t1 = n
+        if t1 <= s_to_dt(b["start"]):
+            raise ValueError("Break end must be after break start.")
         b["end"] = dt_to_s(t1)
         push_undo(db_before, db)
         save(db)
         print(f"Break ended:   {t1.strftime('%Y-%m-%d %H:%M')}")
         print(current_state_text(db))
         return 0
+
+    if len(values) == 1:
+        raw = values[0]
+        if "--" in raw:
+            startp, endp = parse_interval(raw, n)
+        else:
+            try:
+                delta = parse_signed_delta(raw)
+            except ParseError:
+                t0 = parse_timepoint(raw, n)
+                startp, endp = (t0, n) if t0 <= n else (n, t0)
+            else:
+                t0 = n + delta
+                startp, endp = (t0, n) if t0 <= n else (n, t0)
+    elif len(values) == 2:
+        startp = parse_timepoint(values[0], n)
+        dur = parse_signed_delta(values[1])
+        endp = startp + dur
+        if endp < startp:
+            startp, endp = endp, startp
+    else:
+        raise ParseError("clk break accepts at most two arguments.")
+
+    sess.setdefault("breaks", []).append(
+        {"start": dt_to_s(startp), "end": dt_to_s(endp)}
+    )
+    push_undo(db_before, db)
+    save(db)
+    print(
+        f"Break added:   {startp.strftime('%Y-%m-%d %H:%M')} → {endp.strftime('%H:%M')} (net {fmt_td(endp - startp)})"
+    )
+    print(current_state_text(db))
+    return 0
+
+
+def cmd_session(args):
+    db = load()
+    parts = args.parts
+    if len(parts) == 1:
+        day = now().date()
+        spec = parts[0]
+    elif len(parts) == 2:
+        day = parse_date_token(parts[0])
+        spec = parts[1]
+    else:
+        raise ParseError("Usage: clk session [DD.MM.YY] <start--end>")
+
+    if current_session(db) and day == now().date():
+        print(
+            "Already running. End the active session before adding a complete session for today.",
+            file=sys.stderr,
+        )
+        print(current_state_text(db))
+        return 1
+
+    s0, s1, brks = parse_session_spec(spec, now(), fixed_date=day)
+    db_before = json.loads(json.dumps(db))
+    db["sessions"].append(
+        {
+            "start": dt_to_s(s0),
+            "end": dt_to_s(s1),
+            "breaks": [{"start": dt_to_s(a), "end": dt_to_s(b)} for a, b in brks],
+        }
+    )
+    push_undo(db_before, db)
+    save(db)
+    print(f"Session added: {s0.strftime('%Y-%m-%d %H:%M')} → {s1.strftime('%H:%M')}")
+    if brks:
+        print(f"Breaks: {len(brks)}")
+    print(current_state_text(db))
+    return 0
 
 
 def cmd_undo(_args):
@@ -360,28 +498,34 @@ def main(argv=None):
     pt.set_defaults(fn=cmd_edit)
 
     ps = sub.add_parser("start", help="start a session")
-    ps.add_argument(
-        "when", nargs="?", help="(default: 1 min ago) or -7 or 0705/07:05/07h05"
-    )
+    ps.add_argument("when", nargs="?", help="timepoint: HH:MM or signed delta (+/-)")
     ps.set_defaults(fn=cmd_start)
 
     pe = sub.add_parser(
         "end", aliases=["stop"], help="end the current session (stop alias)"
     )
-    pe.add_argument("when", nargs="?", help="(default: in 1 min) or +5 or -2")
+    pe.add_argument("when", nargs="?", help="timepoint: HH:MM or signed delta (+/-)")
     pe.set_defaults(fn=cmd_end)
 
     pb = sub.add_parser(
         "break",
         aliases=["pause"],
-        help="toggle break (pause alias); or add break duration ending now",
+        help="toggle break or add break via timepoint/range",
     )
     pb.add_argument(
-        "duration",
-        nargs="?",
-        help="e.g. 15m, 1h5m (adds a break ending now, with 1-min padding)",
+        "values",
+        nargs="*",
+        help="none, <timepoint>, <start--end>, or <start> <+/-duration>",
     )
     pb.set_defaults(fn=cmd_break)
+
+    pss = sub.add_parser("session", help="add a complete session range")
+    pss.add_argument(
+        "parts",
+        nargs="+",
+        help="session [DD.MM.YY] <start--end> or <start--(break--break)--end>",
+    )
+    pss.set_defaults(fn=cmd_session)
 
     pu = sub.add_parser("undo", help="undo last change")
     pu.set_defaults(fn=cmd_undo)
@@ -394,6 +538,12 @@ def main(argv=None):
         return cmd_report(args)
     try:
         return args.fn(args)
+    except ParseError as e:
+        print(str(e), file=sys.stderr)
+        print(parsing_overview(), file=sys.stderr)
+        db = load()
+        print(current_state_text(db))
+        return 2
     except ValueError as e:
         print(str(e), file=sys.stderr)
         db = load()

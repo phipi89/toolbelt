@@ -1,1 +1,0 @@
-Log the work hours, and save it to a json.
