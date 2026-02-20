@@ -414,8 +414,38 @@ def cmd_break(args):
                 delta = parse_signed_delta(raw)
             except ParseError:
                 t0 = parse_timepoint(raw, n)
-                startp, endp = (t0, n) if t0 <= n else (n, t0)
+                b = active_break(sess)
+                if b:
+                    if t0 <= s_to_dt(b["start"]):
+                        raise ValueError("Break end must be after break start.")
+                    b["end"] = dt_to_s(t0)
+                    push_undo(db_before, db)
+                    save(db)
+                    print(f"Break ended:   {t0.strftime('%Y-%m-%d %H:%M')}")
+                    print(current_state_text(db))
+                    return 0
+                if t0 > n:
+                    raise ValueError("Break start must not be in the future.")
+                sess.setdefault("breaks", []).append({"start": dt_to_s(t0), "end": None})
+                push_undo(db_before, db)
+                save(db)
+                print(f"Break started: {t0.strftime('%Y-%m-%d %H:%M')}")
+                print(current_state_text(db))
+                return 0
             else:
+                b = active_break(sess)
+                if b:
+                    t0 = n + delta
+                    startp, endp = (t0, n) if t0 <= n else (n, t0)
+                    b["start"] = dt_to_s(startp)
+                    b["end"] = dt_to_s(endp)
+                    push_undo(db_before, db)
+                    save(db)
+                    print(
+                        f"Break set:     {startp.strftime('%Y-%m-%d %H:%M')} → {endp.strftime('%H:%M')} (net {fmt_td(endp - startp)})"
+                    )
+                    print(current_state_text(db))
+                    return 0
                 t0 = n + delta
                 startp, endp = (t0, n) if t0 <= n else (n, t0)
     elif len(values) == 2:
@@ -491,6 +521,18 @@ def cmd_undo(_args):
 
 
 def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in {"start", "end", "stop", "break", "pause"}:
+        rest = argv[1:]
+        if (
+            rest
+            and "--" not in rest
+            and "-h" not in rest
+            and "--help" not in rest
+            and any(re.fullmatch(r"[+-](?:(\d+)h)?(?:(\d+)m)?", x.lower()) for x in rest)
+        ):
+            argv = [argv[0], "--", *rest]
+
     p = argparse.ArgumentParser(prog="clk", add_help=True)
     sub = p.add_subparsers(dest="cmd")
 
