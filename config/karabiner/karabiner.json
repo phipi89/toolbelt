@@ -57,6 +57,17 @@
                             },
                             {
                                 "from": {
+                                    "key_code": "slash",
+                                    "modifiers": {
+                                        "mandatory": ["right_command"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "shell_command": "$HOME/toolbelt/window_management/move/reduce.sh" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
                                     "key_code": "left_arrow",
                                     "modifiers": {
                                         "mandatory": ["right_command"],
