@@ -13,6 +13,9 @@ py:
   eartools: |
     [tool.uv.sources]
     eartools = { path = "/Users/philippaebischer/Documents/HRL/Projects/HRL Software Tool", editable = true}
+  autoreload: |
+    %load_ext autoreload
+    %autoreload 2
 
 
 text:
@@ -31,4 +34,34 @@ text:
     www.artorg.unibe.ch/research/hrl
     philipp.aebischer@unibe.ch
     +41 31 684 14 25
+
+
+
+tex:
+  figure: |
+    \begin{figure*}[!t] % {figure} for single columns
+    \centering
+    \includegraphics[width=\linewidth]{img/image_name.pdf}
+    \caption{Image caption.}
+    \label{fig:image-name}
+    \end{figure*}
+
+  setup: |
+    \usepackage{xcolor}
+    \usepackage{amsmath}
+    \usepackage[colorlinks=true, allcolors=blue]{hyperref}
+    \usepackage{tabularx}
+
+    \usepackage[english]{babel}
+
+    \usepackage{graphicx}
+    \graphicspath{{img/}}
+
+    \usepackage{siunitx}
+    \sisetup{per-mode=symbol-or-fraction}
+
+    \newcommand{\figref}[1]{Figure\ \ref{#1}}
+    \newcommand{\secref}[1]{section\ \ref{#1}}
+
+
 
