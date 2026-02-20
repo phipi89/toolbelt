@@ -224,7 +224,7 @@
                             },
                             {
                                 "from": {
-                                    "key_code": "v",
+                                    "key_code": "x",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
                                 "to": [{ "shell_command": "$HOME/toolbelt/window_management/manage_windows.sh 'Visual Studio Code'" }],
@@ -308,6 +308,14 @@
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
                                 "to": [{ "key_code": "f16" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "v",
+                                    "modifiers": { "mandatory": ["right_gui"] }
+                                },
+                                "to": [{ "key_code": "f17" }],
                                 "type": "basic"
                             }
                         ]
