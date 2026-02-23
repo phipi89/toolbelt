@@ -72,6 +72,8 @@ source "$TOOLBELT/misc/compose_mail.sh"
 source "$TOOLBELT/misc/yank-to-clipboard.sh"
 snippets() { (cd "$TOOLBELT/misc" || return 1; uv run snippets.py;) }
 
+source $TOOLBELT/misc/diskusage.sh
+
 
 
 #            _
