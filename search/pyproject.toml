@@ -1,0 +1,13 @@
+[project]
+name = "find"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "prompt-toolkit>=3.0.52",
+]
+
+[project.scripts]
+search = "search.cli:main"
+
+[tool.uv]
+package = true

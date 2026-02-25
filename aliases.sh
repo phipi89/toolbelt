@@ -29,6 +29,16 @@ run() { (cd "$TOOLBELT/run" || return 1; uv run run;) }
 source "$TOOLBELT/pytemp/pytemp.zsh"
 
 
+#                          _
+#  ___  ___  __ _ _ __ ___| |__
+# / __|/ _ \/ _` | '__/ __| '_ \
+# \__ \  __/ (_| | | | (__| | | |
+# |___/\___|\__,_|_|  \___|_| |_|
+#
+
+search() { (cd "$TOOLBELT/search" || return 1; uv run search;) }
+
+
 
 #       _ _
 #   ___| | | __
