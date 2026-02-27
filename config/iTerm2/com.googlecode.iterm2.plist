@@ -2930,7 +2930,7 @@
 			<key>Columns</key>
 			<integer>60</integer>
 			<key>Command</key>
-			<string>zsh -ic "$HOME/toolbelt/run/launch_run.sh"</string>
+			<string>zsh -lic "$HOME/toolbelt/run/run.sh"</string>
 			<key>Cursor Boost</key>
 			<real>0.0</real>
 			<key>Cursor Color</key>
@@ -2969,7 +2969,7 @@
 			<key>Custom Command</key>
 			<string>Yes</string>
 			<key>Custom Directory</key>
-			<string>Yes</string>
+			<string>No</string>
 			<key>Default Bookmark</key>
 			<string>No</string>
 			<key>Description</key>
@@ -3503,7 +3503,7 @@
 			<key>Right Option Key Sends</key>
 			<integer>0</integer>
 			<key>Rows</key>
-			<integer>10</integer>
+			<integer>16</integer>
 			<key>Screen</key>
 			<integer>-2</integer>
 			<key>Scrollback Lines</key>
@@ -3796,7 +3796,7 @@
 			<key>Columns</key>
 			<integer>80</integer>
 			<key>Command</key>
-			<string>zsh -ic "$HOME/toolbelt/calc/launch_calc.sh"</string>
+			<string>zsh -lic "$HOME/toolbelt/calc/run.sh"</string>
 			<key>Cursor Boost</key>
 			<real>0.0</real>
 			<key>Cursor Color</key>
@@ -3835,7 +3835,7 @@
 			<key>Custom Command</key>
 			<string>Yes</string>
 			<key>Custom Directory</key>
-			<string>Yes</string>
+			<string>No</string>
 			<key>Default Bookmark</key>
 			<string>No</string>
 			<key>Description</key>
@@ -4664,7 +4664,7 @@
 			<key>Columns</key>
 			<integer>70</integer>
 			<key>Command</key>
-			<string>zsh -ic "uv run snippets.py --close"</string>
+			<string>zsh -lic "$HOME/toolbelt/snippets/run.sh"</string>
 			<key>Cursor Boost</key>
 			<real>0.0</real>
 			<key>Cursor Color</key>
@@ -4703,7 +4703,7 @@
 			<key>Custom Command</key>
 			<string>Yes</string>
 			<key>Custom Directory</key>
-			<string>Yes</string>
+			<string>No</string>
 			<key>Default Bookmark</key>
 			<string>No</string>
 			<key>Description</key>
