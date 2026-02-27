@@ -1,0 +1,19 @@
+[project]
+name = "snippets"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "prompt-toolkit>=3.0.52",
+    "pyperclip>=1.11.0",
+    "pyyaml>=6.0.3",
+]
+
+[project.scripts]
+cli = "snippets.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/snippets"]

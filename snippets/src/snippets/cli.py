@@ -1,8 +1,3 @@
-#!/usr/bin/env -S uv run
-# /// script
-# dependencies = ["pyperclip", "pyyaml", "prompt_toolkit"]
-# ///
-
 import argparse
 import pathlib
 import re
@@ -177,7 +172,7 @@ def main():
         print(pad * " " + line)
     print()
 
-    root = pathlib.Path(__file__).parents[1]
+    root = pathlib.Path(__file__).parents[3]
     shared_yaml_path = root / "config" / "snippets" / "snippets.yaml"
     private_yaml_path = root / "config" / "private" / "snippets.yaml"
 

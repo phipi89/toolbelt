@@ -16,6 +16,16 @@ py:
   autoreload: |
     %load_ext autoreload
     %autoreload 2
+  uv-script: |
+    [project.scripts]
+    script_name = "prj.file:main" # assuming src/prj/file.py
+
+    [build-system]
+    requires = ["hatchling"]
+    build-backend = "hatchling.build"
+
+    [tool.hatch.build.targets.wheel]
+    packages = ["src/prj"]
 
 
 text:
