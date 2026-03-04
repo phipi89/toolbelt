@@ -408,7 +408,7 @@ def _print_inflection_table(table):
 
 def build_parser():
     p = ArgumentParser(description="Retrieve word information via the Leo website")
-    p.add_argument("words", nargs="+", help="the words to look up on the LEO website")
+    p.add_argument("words", nargs="*", help="the words to look up on the LEO website")
     p.add_argument(
         "-f",
         "--from",
@@ -466,6 +466,13 @@ def build_parser():
         help="print dictionary definitions. True by default if -i is not specified.",
     )
     p.add_argument(
+        "--loop",
+        action="store_true",
+        dest="loop",
+        default=False,
+        help="keep prompting for new words",
+    )
+    p.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -478,6 +485,10 @@ def build_parser():
 
 def parse_args(argv=None):
     args = vars(build_parser().parse_args(argv))
+    if not args["loop"] and not args["words"]:
+        build_parser().error(
+            "the following arguments are required: words (or use --loop)"
+        )
     if not args["inflect"]:
         args["define"] = True
     if args["pos"]:
@@ -485,51 +496,68 @@ def parse_args(argv=None):
     return args
 
 
+def _run_for_words(args, words):
+    if args["define"]:
+        for word in words:
+            entries, similar = get_entries(
+                word,
+                args["source_lang"],
+                args["target_lang"],
+                args["pos"],
+                verbose=args["verbose"],
+            )
+            if similar:
+                print("\nSimilar Words")
+                _print_similar(similar)
+                print()
+            if entries:
+                _print_translation(entries, args)
+            else:
+                print("\tNo translations found")
+            if args["inflect"]:
+                print()
+            sys.stdout.flush()
+
+    if args["inflect"]:
+        for word in words:
+            entries, similar = get_entries(
+                word,
+                args["source_lang"],
+                args["target_lang"],
+                args["pos"],
+                verbose=args["verbose"],
+            )
+            tables = inflect(entries, verbose=args["verbose"])
+            table_count = 0
+            for table in tables:
+                table_count += 1
+                _print_inflection_table(table)
+                print()
+                sys.stdout.flush()
+            if table_count == 0:
+                print("\tNo inflection tables found for " + word)
+            if similar:
+                print("\nSimilar Words")
+                _print_similar(similar)
+
+
 def main(argv=None):
     args = parse_args(argv)
     try:
-        if args["define"]:
-            for word in args["words"]:
-                entries, similar = get_entries(
-                    word,
-                    args["source_lang"],
-                    args["target_lang"],
-                    args["pos"],
-                    verbose=args["verbose"],
-                )
-                if similar:
-                    print("\nSimilar Words")
-                    _print_similar(similar)
+        if args["loop"]:
+            if args["words"]:
+                _run_for_words(args, args["words"])
+            while True:
+                try:
                     print()
-                if entries:
-                    _print_translation(entries, args)
-                else:
-                    print("\tNo translations found")
-                if args["inflect"]:
-                    print()
-                sys.stdout.flush()
-
-        if args["inflect"]:
-            for word in args["words"]:
-                entries, similar = get_entries(
-                    word,
-                    args["source_lang"],
-                    args["target_lang"],
-                    args["pos"],
-                    verbose=args["verbose"],
-                )
-                tables = inflect(entries, verbose=args["verbose"])
-                table_count = 0
-                for table in tables:
-                    table_count += 1
-                    _print_inflection_table(table)
-                    print()
-                    sys.stdout.flush()
-                if table_count == 0:
-                    print("\tNo inflection tables found for " + word)
-                if similar:
-                    print("\nSimilar Words")
-                    _print_similar(similar)
+                    word = input("> ").strip()
+                except EOFError:
+                    break
+                if not word:
+                    continue
+                _run_for_words(args, [word])
+        else:
+            _run_for_words(args, args["words"])
 
     except user_interrupt_errors:
         if args.get("verbose"):
