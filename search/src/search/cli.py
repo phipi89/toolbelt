@@ -266,13 +266,23 @@ def interactive(entries, refresh_interval, load_entries):
         bottom_toolbar=lambda: f" Base path: {completer.current_base_path or home}",
     )
 
+    def _completions_for_buffer(buffer):
+        doc = Document(text=buffer.text, cursor_position=buffer.cursor_position)
+        return list(completer.get_completions(doc, None))
+
+    def _accept_nth(buffer, index):
+        completions = _completions_for_buffer(buffer)
+        if 0 <= index < len(completions):
+            buffer.apply_completion(completions[index])
+            return True
+        return False
+
     def accept_best(buffer):
         state = buffer.complete_state
         if state and state.current_completion:
             buffer.apply_completion(state.current_completion)
             return
-        doc = Document(text=buffer.text, cursor_position=buffer.cursor_position)
-        completions = list(completer.get_completions(doc, None))
+        completions = _completions_for_buffer(buffer)
         if completions:
             buffer.apply_completion(completions[0])
 
@@ -281,6 +291,13 @@ def interactive(entries, refresh_interval, load_entries):
         buffer = event.app.current_buffer
         accept_best(buffer)
         event.app.exit(result=buffer.text)
+
+    for n in range(1, 10):
+        @kb.add(str(n))
+        def _(event, n=n):
+            buffer = event.app.current_buffer
+            if _accept_nth(buffer, n - 1):
+                event.app.exit(result=buffer.text)
 
     _start_refresh_thread(refresh_interval, load_entries, completer, stop_refresh)
 
