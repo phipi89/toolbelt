@@ -1,5 +1,6 @@
 import pathlib
 import subprocess
+import time
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
@@ -7,6 +8,15 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.shortcuts import CompleteStyle
 from prompt_toolkit.styles import Style
+
+header = r"""
+                         .-------.
+                         | >RUN_ |
+                       __|_______|__
+                      |  _________  |
+                      `-/.:::::::.\-'
+                       `-----------'
+"""
 
 
 def interactive(items):
@@ -76,6 +86,9 @@ def interactive(items):
 
 
 def main():
+
+    print(header)
+
     items = []
     for base in (pathlib.Path("/"), pathlib.Path("/System"), pathlib.Path.home()):
         app_dir = base / "Applications"
@@ -96,8 +109,19 @@ def main():
         raise SystemExit(f"Not found: {selection}")
 
     path = apps[selection]
-    target = path.parent if action == "PARENT" else path
-    subprocess.run(["open", target.as_posix()])
+    if action == "PARENT":
+        target = path.parent
+        subprocess.run(["open", target.as_posix()])
+    else:
+        app_name = path.stem
+        window_manager = (
+            pathlib.Path.home() / "toolbelt" / "window_management" / "manage_windows.sh"
+        )
+        completed_process = subprocess.run([window_manager.as_posix(), app_name])
+        if completed_process.returncode:
+            print(f"failed to open {app_name}")
+            time.sleep(5)
+            subprocess.run(["open", target.as_posix()])
 
 
 if __name__ == "__main__":
