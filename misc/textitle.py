@@ -24,10 +24,30 @@ def main():
         help="The character(s) to use for the comment prefix (default: %%). Space is added automatically.",
     )
 
-    args = parser.parse_args()
+    parser.add_argument(
+        "-f",
+        "--font",
+        default="ogre",
+        help="Font name, or [1, 2, 3] for a preselection.",
+    )
 
+    args = parser.parse_args()
     title_text = " ".join(args.text)
-    title = Figlet().renderText(title_text)
+
+    fonts = ("cybermedium", "pagga", "future", "isometric1")
+    font = args.font
+    if font in ("1", "2", "3", "4"):
+        font = fonts[int(font) - 1]
+
+    if font == "list":
+        for i, option in enumerate(fonts, start=1):
+            title = Figlet(font=option).renderText(title_text)
+            print(f"{i}: {option}")
+            print(title)
+            print("\n\n")
+        return
+
+    title = Figlet(font=font).renderText(title_text)
 
     prefix = f"{args.prefix} "
     title = "\n".join(f"{prefix}{line}" for line in title.splitlines())
