@@ -10,6 +10,7 @@ import re
 import subprocess
 import sys
 from datetime import date, datetime, timedelta
+from statistics import median
 
 try:
     from zoneinfo import ZoneInfo
@@ -172,6 +173,13 @@ def parse_date_token(token):
         raise ParseError(f"Invalid date: {token!r}")
 
 
+def parse_iso_date(token):
+    try:
+        return date.fromisoformat(token.strip())
+    except ValueError as e:
+        raise ParseError(f"Invalid ISO date: {token!r}. Expected YYYY-MM-DD.") from e
+
+
 def parse_timepoint(token, ref, fixed_date=None):
     t = token.strip()
     try:
@@ -292,6 +300,95 @@ def daily_totals(db, days_back=7):
     return totals
 
 
+def daily_totals_between(db, start_day, end_day):
+    n = now()
+    totals = {}
+    d = start_day
+    while d <= end_day:
+        totals[d] = timedelta(0)
+        d += timedelta(days=1)
+    for d in list(totals.keys()):
+        r0 = datetime.combine(d, datetime.min.time(), tzinfo=n.tzinfo)
+        r1 = r0 + timedelta(days=1)
+        for sess in db["sessions"]:
+            totals[d] += worked_in_range(sess, r0, r1)
+    return totals
+
+
+def history_bounds(db):
+    if not db["sessions"]:
+        return None
+    n = now().date()
+    lo = None
+    hi = None
+    for sess in db["sessions"]:
+        s0 = s_to_dt(sess["start"]).date()
+        s1 = s_to_dt(sess["end"]).date() if sess.get("end") else n
+        lo = s0 if lo is None or s0 < lo else lo
+        hi = s1 if hi is None or s1 > hi else hi
+    return lo, hi
+
+
+WORK_DAYS = {0, 2, 3, 4}  # Mon, Wed, Thu, Fri
+
+
+def expected_full_day_hours(d, weekly_target_hours):
+    return weekly_target_hours * 0.25 if d.weekday() in WORK_DAYS else 0.0
+
+
+def median_work_window_minutes(db):
+    starts = []
+    ends = []
+    for sess in db["sessions"]:
+        if not sess.get("end"):
+            continue
+        s0 = s_to_dt(sess["start"])
+        s1 = s_to_dt(sess["end"])
+        start_m = s0.hour * 60 + s0.minute
+        end_m = s1.hour * 60 + s1.minute
+        if end_m <= start_m:
+            continue
+        starts.append(start_m)
+        ends.append(end_m)
+    if not starts or not ends:
+        return 9 * 60, 17 * 60
+    return float(median(starts)), float(median(ends))
+
+
+def day_completion_fraction(ts, start_minute, end_minute):
+    if end_minute <= start_minute:
+        return 1.0
+    m = ts.hour * 60 + ts.minute + ts.second / 60.0
+    if m <= start_minute:
+        return 0.0
+    if m >= end_minute:
+        return 1.0
+    return (m - start_minute) / (end_minute - start_minute)
+
+
+def weekly_buckets(daily_rows):
+    out = {}
+    for row in daily_rows:
+        d = row["date"]
+        week_start = d - timedelta(days=d.weekday())
+        bucket = out.setdefault(
+            week_start,
+            {
+                "week_start": week_start,
+                "worked": 0.0,
+                "expected": 0.0,
+                "cum_day_marks": [],
+            },
+        )
+        bucket["worked"] += row["worked"]
+        bucket["expected"] += row["expected"]
+        bucket["cum_day_marks"].append(bucket["worked"])
+    weeks = [out[k] for k in sorted(out.keys())]
+    for w in weeks:
+        w["delta"] = w["worked"] - w["expected"]
+    return weeks
+
+
 def current_state_text(db):
     sess = current_session(db)
     if not sess:
@@ -325,6 +422,188 @@ def print_report(db):
 def cmd_report(_args):
     db = load()
     print_report(db)
+    return 0
+
+
+def cmd_analyse(args):
+    db = load()
+    bounds = history_bounds(db)
+    if bounds is None:
+        print("No sessions found. Add work logs first.")
+        return 1
+
+    auto_start, auto_end = bounds
+    start_day = parse_iso_date(args.start_date) if args.start_date else auto_start
+    now_ts = now()
+    end_day = max(auto_end, now_ts.date())
+    if start_day > end_day:
+        print("Start date must not be after latest logged day.", file=sys.stderr)
+        return 2
+
+    median_start, median_end = median_work_window_minutes(db)
+    daily = daily_totals_between(db, start_day, end_day)
+    rows = []
+    cum_worked = 0.0
+    cum_expected = 0.0
+    for d in sorted(daily.keys()):
+        worked = daily[d].total_seconds() / 3600.0
+        expected_full = expected_full_day_hours(d, args.weekly_target)
+        if d == now_ts.date():
+            frac = day_completion_fraction(now_ts, median_start, median_end)
+            expected = expected_full * frac
+        else:
+            expected = expected_full
+        cum_worked += worked
+        cum_expected += expected
+        rows.append(
+            {
+                "date": d,
+                "worked": worked,
+                "expected": expected,
+                "delta": worked - expected,
+                "cum_worked": cum_worked,
+                "cum_expected": cum_expected,
+                "cum_delta": cum_worked - cum_expected,
+            }
+        )
+
+    weeks = weekly_buckets(rows)
+    total_delta = rows[-1]["cum_delta"] if rows else 0.0
+    print(
+        f"Range: {start_day.isoformat()} to {end_day.isoformat()} | "
+        f"Worked: {rows[-1]['cum_worked']:.2f}h | Expected: {rows[-1]['cum_expected']:.2f}h | "
+        f"Surplus/Deficit: {total_delta:+.2f}h"
+    )
+    if args.summary_only:
+        print("\nWeekly totals:")
+        for w in weeks:
+            print(
+                f"  {w['week_start'].isoformat()}: "
+                f"{w['worked']:.2f}h worked / {w['expected']:.2f}h expected ({w['delta']:+.2f}h)"
+            )
+        return 0
+
+    try:
+        from dash import Dash, dcc, html
+        import plotly.graph_objects as go
+    except ImportError:
+        print(
+            "Dash/Plotly not installed. Add dependencies first, then retry.",
+            file=sys.stderr,
+        )
+        return 2
+
+    x_days = [r["date"] for r in rows]
+    daily_expected = [r["expected"] for r in rows]
+    daily_surplus = [max(r["delta"], 0.0) for r in rows]
+    daily_deficit = [max(-r["delta"], 0.0) for r in rows]
+    daily_deficit_base = [r["worked"] for r in rows]
+    fig_daily = go.Figure()
+    fig_daily.add_trace(
+        go.Bar(
+            x=x_days,
+            y=daily_expected,
+            name="Expected (h)",
+            marker_color="#b5b5b5",
+        )
+    )
+    fig_daily.add_trace(
+        go.Bar(
+            x=x_days,
+            y=daily_surplus,
+            base=daily_expected,
+            name="Surplus (h)",
+            marker_color="#2d6cdf",
+        )
+    )
+    fig_daily.add_trace(
+        go.Bar(
+            x=x_days,
+            y=daily_deficit,
+            base=daily_deficit_base,
+            name="Deficit (h)",
+            marker_color="#d44f4f",
+        )
+    )
+    fig_daily.update_layout(
+        title="Daily Hours",
+        barmode="overlay",
+        xaxis_title="Date",
+        yaxis_title="Hours",
+    )
+
+    x_weeks = [w["week_start"] for w in weeks]
+    weekly_expected = [w["expected"] for w in weeks]
+    weekly_surplus = [max(w["delta"], 0.0) for w in weeks]
+    weekly_deficit = [max(-w["delta"], 0.0) for w in weeks]
+    weekly_deficit_base = [w["worked"] for w in weeks]
+    fig_weekly = go.Figure()
+    fig_weekly.add_trace(
+        go.Bar(
+            x=x_weeks,
+            y=weekly_expected,
+            name="Expected (h)",
+            marker_color="#b5b5b5",
+        )
+    )
+    fig_weekly.add_trace(
+        go.Bar(
+            x=x_weeks,
+            y=weekly_surplus,
+            base=weekly_expected,
+            name="Surplus (h)",
+            marker_color="#2d6cdf",
+        )
+    )
+    fig_weekly.add_trace(
+        go.Bar(
+            x=x_weeks,
+            y=weekly_deficit,
+            base=weekly_deficit_base,
+            name="Deficit (h)",
+            marker_color="#d44f4f",
+        )
+    )
+    mark_x = []
+    mark_y = []
+    for w in weeks:
+        for y in w["cum_day_marks"]:
+            mark_x.append(w["week_start"])
+            mark_y.append(y)
+    fig_weekly.add_trace(
+        go.Scatter(
+            x=mark_x,
+            y=mark_y,
+            mode="markers",
+            name="Daily buildup",
+            marker={"symbol": "line-ew", "size": 16, "color": "#333333"},
+            hoverinfo="skip",
+        )
+    )
+    fig_weekly.update_layout(
+        title="Weekly Hours",
+        barmode="overlay",
+        xaxis_title="Week Start",
+        yaxis_title="Hours",
+    )
+
+    app = Dash(__name__)
+    app.layout = html.Div(
+        [
+            html.H2("Work Hours Analyse"),
+            html.P(
+                "Range: "
+                f"{start_day.isoformat()} to {end_day.isoformat()} | "
+                f"Worked: {rows[-1]['cum_worked']:.2f}h | "
+                f"Expected: {rows[-1]['cum_expected']:.2f}h | "
+                f"Surplus/Deficit: {total_delta:+.2f}h"
+            ),
+            dcc.Graph(figure=fig_daily),
+            dcc.Graph(figure=fig_weekly),
+        ],
+        style={"maxWidth": "1200px", "margin": "0 auto"},
+    )
+    app.run(host=args.host, port=args.port, debug=False)
     return 0
 
 
@@ -574,6 +853,36 @@ def main(argv=None):
 
     pr = sub.add_parser("report", help="report (same as running clk with no args)")
     pr.set_defaults(fn=cmd_report)
+
+    pa = sub.add_parser(
+        "analyse",
+        aliases=["analyze"],
+        help="analyse work history and plot trends in Dash",
+    )
+    pa.add_argument(
+        "--start-date",
+        help="analysis start date (YYYY-MM-DD). Defaults to first logged session.",
+    )
+    pa.add_argument(
+        "--weekly-target",
+        type=float,
+        default=42 * 0.8,
+        help="expected weekly hours (default: 33.6)",
+    )
+    pa.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="dash bind host (default: 127.0.0.1)",
+    )
+    pa.add_argument(
+        "--port", type=int, default=8050, help="dash bind port (default: 8050)"
+    )
+    pa.add_argument(
+        "--summary-only",
+        action="store_true",
+        help="print stats only, no dashboard",
+    )
+    pa.set_defaults(fn=cmd_analyse)
 
     args = p.parse_args(argv)
     if args.cmd is None:
