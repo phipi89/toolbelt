@@ -8,5 +8,6 @@ apps:
   "VSCodium": "select"
   "iTerm2": "spawn_new"
   "Finder": "spawn_new"
+  "Overleaf": "select"
 
 default_action: "goto"
