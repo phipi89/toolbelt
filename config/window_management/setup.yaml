@@ -1,13 +1,37 @@
 # Window Management Rules
 apps:
-  "Firefox": "spawn_new"
-  "Google Chrome": "spawn_new"
-  "Sublime Text": "spawn_new"
-  "Obsidian": "select"
-  "3D Slicer": "select"
-  "VSCodium": "select"
-  "iTerm2": "spawn_new"
-  "Finder": "spawn_new"
-  "Overleaf": "select"
+  Firefox:
+    action: spawn_new
 
-default_action: "goto"
+  Google Chrome:
+    action: spawn_new
+    spawn_script: osascript -e 'tell application "Google Chrome" to make new window'
+
+  iTerm2:
+    action: spawn_new
+    spawn_script: tell application "iTerm2" to create window with default profile
+
+  Finder:
+    action: spawn_new
+    spawn_script: tell application "Finder" to make new Finder window
+
+  Sublime Text:
+    action: spawn_new
+
+  Zed:
+    action: spawn_new
+    spawn_script: /opt/homebrew/bin/zed -n
+
+  Obsidian:
+    action: select
+
+  "3D Slicer":
+    action: select
+
+  VSCodium:
+    action: select
+
+  Overleaf:
+    action: select
+
+default_action: goto
