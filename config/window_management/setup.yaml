@@ -2,18 +2,19 @@
 apps:
   Firefox:
     action: spawn_new
+    # spawn_script: /opt/homebrew/bin/hs -c 'local app=hs.appfinder.appFromName("Firefox"); if app then hs.eventtap.keyStroke({"cmd"},"n",0,app) end'
 
   Google Chrome:
     action: spawn_new
-    spawn_script: osascript -e 'tell application "Google Chrome" to make new window'
+    # spawn_script: osascript -e 'tell application "Google Chrome" to make new window'
 
   iTerm2:
     action: spawn_new
-    spawn_script: tell application "iTerm2" to create window with default profile
+    # spawn_script: osascript -e 'tell application "iTerm2" to create window with default profile'
 
   Finder:
     action: spawn_new
-    spawn_script: tell application "Finder" to make new Finder window
+    spawn_script: osascript -e 'tell application "Finder" to make new Finder window'
 
   Sublime Text:
     action: spawn_new

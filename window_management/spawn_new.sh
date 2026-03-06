@@ -1,15 +1,6 @@
 #!/bin/zsh
 APP_NAME=$1
-
-CONFIG_PATH="${CONFIG_PATH:-$HOME/toolbelt/config/window_management/setup.yaml}"
-
-# Fallback: if SPAWN_SCRIPT was not exported by caller, resolve it from config.
-if [[ -z "${SPAWN_SCRIPT:-}" && -f "$CONFIG_PATH" ]]; then
-  export APP_NAME
-  SPAWN_SCRIPT=$(yq e -r '.apps[strenv(APP_NAME)].spawn_script // ""' "$CONFIG_PATH")
-fi
-
-SPAWN_SCRIPT="${SPAWN_SCRIPT:-}"
+SPAWN_SCRIPT=$2
 
 printf '[spawn_new.sh] start app="%s"\n' "$APP_NAME"
 printf '[spawn_new.sh] spawn_script_len=%s\n' "${#SPAWN_SCRIPT}"
@@ -72,7 +63,9 @@ local function runFallbackCmdN(name)
   -- NOTE: this can switch spaces if Mission Control setting is enabled
   -- “When switching to an application, switch to a Space with open windows”
   dbg("running fallback open -n -a for " .. tostring(name))
-  hs.execute(("/usr/bin/open -n -a %q"):format(name), true)
+  -- hs.execute(("/usr/bin/open -n -a %q"):format(name), true)
+  local app=hs.appfinder.appFromName(name)
+  if app then hs.eventtap.keyStroke({"cmd"},"n",0,app) end
 end
 
 local function runSpawnScript(script)
