@@ -4,7 +4,7 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
 
 APP_NAME="$*"
-CONFIG_PATH="$HOME/toolbelt/config/window_management/setup.yaml"
+CONFIG_PATH="$HOME/toolbelt/config/display/setup.yaml"
 
 # 1. Get the action from YAML, fallback to default
 export APP_NAME
@@ -13,4 +13,4 @@ SPAWN_SCRIPT=$(yq e '.apps[strenv(APP_NAME)].spawn_script // ""' "$CONFIG_PATH")
 
 echo "$ACTION"
 echo "$SPAWN_SCRIPT"
-"$HOME/toolbelt/window_management/$ACTION.sh" "$APP_NAME" "$SPAWN_SCRIPT"
+"$HOME/toolbelt/display/$ACTION.sh" "$APP_NAME" "$SPAWN_SCRIPT"
