@@ -68,13 +68,10 @@
                             },
                             {
                                 "from": {
-                                    "key_code": "y",
-                                    "modifiers": {
-                                        "mandatory": ["left_command"],
-                                        "optional": ["any"]
-                                    }
+                                    "key_code": "caps_lock",
+                                    "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "shell_command": "$HOME/toolbelt/display/move/cycle.sh" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/display/cycle.sh" }],
                                 "type": "basic"
                             },
                             {
@@ -371,12 +368,6 @@
             ],
             "name": "Default profile",
             "selected": true,
-            "simple_modifications": [
-                {
-                    "from": { "key_code": "caps_lock" },
-                    "to": [{ "key_code": "escape" }]
-                }
-            ],
             "virtual_hid_keyboard": {
                 "country_code": 0,
                 "keyboard_type_v2": "iso"
