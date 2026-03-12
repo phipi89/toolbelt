@@ -114,9 +114,7 @@ def main():
         subprocess.run(["open", target.as_posix()])
     else:
         app_name = path.stem
-        window_manager = (
-            pathlib.Path.home() / "toolbelt" / "window_management" / "manage_windows.sh"
-        )
+        window_manager = pathlib.Path.home() / "toolbelt" / "display" / "manage.sh"
         completed_process = subprocess.run([window_manager.as_posix(), app_name])
         if completed_process.returncode:
             print(f"failed to open {app_name}")
