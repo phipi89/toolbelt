@@ -83,6 +83,7 @@ source "$TOOLBELT/misc/yank-to-clipboard.sh"
 snippets() { (cd "$TOOLBELT/snippets" || return 1; uv run cli;) }
 
 source $TOOLBELT/misc/diskusage.sh
+source $TOOLBELT/misc/eject-all.sh
 
 
 
