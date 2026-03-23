@@ -68,6 +68,17 @@
                             },
                             {
                                 "from": {
+                                    "key_code": "semicolon",
+                                    "modifiers": {
+                                        "mandatory": ["right_command"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "shell_command": "$HOME/toolbelt/display/move/distribute.sh" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
                                     "key_code": "caps_lock",
                                     "modifiers": { "optional": ["any"] }
                                 },
