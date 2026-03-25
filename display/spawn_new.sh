@@ -83,6 +83,13 @@ local function runSpawnScript(script)
   return true
 end
 
+local function bringToFront(win, appObj)
+  if not win then return end
+  if appObj then appObj:activate(true) end
+  win:raise()
+  win:focus()
+end
+
 -- If config provided a spawn_script, use it; else fallback to Cmd+N
 if spawnScript ~= "" then
   dbg("path: spawnScript")
@@ -121,10 +128,12 @@ if newWin then
   if newWin:screen() ~= targetScreen then
     dbg("window not on target screen; moving to target screen")
     newWin:moveToScreen(targetScreen, nil, true)
-    hs.timer.usleep(100000)
+    hs.timer.usleep(150000)
   end
-  dbg("focusing selected window")
-  newWin:focus()
+  dbg("raising and focusing selected window")
+  bringToFront(newWin, app)
+  hs.timer.usleep(50000)
+  bringToFront(newWin, app)
   dbg("done")
 else
   dbg("no window available to focus after spawn path")
