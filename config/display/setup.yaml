@@ -26,6 +26,12 @@ apps:
   Obsidian:
     action: select
 
+  Autodesk Fusion:
+    action: select
+
+  Slicer:
+    action: select
+
   "3D Slicer":
     action: select
 
