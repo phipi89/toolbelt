@@ -351,7 +351,7 @@ def main():
         config["index_limit"],
         config["recent_days"],
         with_meta=True,
-        compute_total=True,
+        compute_total=False,
     )
     print(
         f"Indexed {len(entries)} items "
@@ -359,6 +359,7 @@ def main():
     )
     if args.refresh:
         return
+
 
     selection, found = interactive(
         entries,

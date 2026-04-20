@@ -59,17 +59,11 @@ def _scan_fallback(root, recent_days=360, limit=None):
     out = []
     for dirpath, dirnames, filenames in os.walk(root, topdown=True):
         for name in dirnames:
-            if _append_entry(Path(dirpath) / name, out, cutoff):
-                if limit is not None and len(out) >= limit:
-                    out.sort(key=lambda item: item["last_used"], reverse=True)
-                    return out
+            _append_entry(Path(dirpath) / name, out, cutoff)
         for name in filenames:
-            if _append_entry(Path(dirpath) / name, out, cutoff):
-                if limit is not None and len(out) >= limit:
-                    out.sort(key=lambda item: item["last_used"], reverse=True)
-                    return out
+            _append_entry(Path(dirpath) / name, out, cutoff)
     out.sort(key=lambda item: item["last_used"], reverse=True)
-    return out
+    return _with_limit(out, limit)
 
 
 def _append_entry(path, out, cutoff):

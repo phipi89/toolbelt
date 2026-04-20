@@ -36,7 +36,7 @@ source "$TOOLBELT/pytemp/pytemp.zsh"
 # |___/\___|\__,_|_|  \___|_| |_|
 #
 
-search() { (cd "$TOOLBELT/search" || return 1; uv run search;) }
+search() { (cd "$TOOLBELT/search" || return 1; ../display/move/center.sh; clear; uv run search;) }
 
 
 
