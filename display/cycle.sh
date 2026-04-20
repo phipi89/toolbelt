@@ -4,9 +4,15 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
 hs -c "
 local wins = {}
+local focused = hs.window.focusedWindow()
+local targetScreen = (focused and focused:screen()) or hs.mouse.getCurrentScreen()
+
+if not targetScreen then
+  return
+end
 
 for _, win in ipairs(hs.window.orderedWindows()) do
-  if win:isStandard() and win:isVisible() then
+  if win:isStandard() and win:isVisible() and win:screen() == targetScreen then
     table.insert(wins, win)
   end
 end
@@ -15,9 +21,5 @@ if #wins < 2 then
   return
 end
 
--- Rotate front-to-back order [A, B, C] into [B, C, A]
--- by bringing windows to front from back to front.
-for i = #wins, 2, -1 do
-  wins[i]:focus()
-end
+wins[2]:focus()
 "
