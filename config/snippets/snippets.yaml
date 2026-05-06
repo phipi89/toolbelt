@@ -10,12 +10,15 @@ py:
     # /// script
     # dependencies = ["pyperclip", "pyfiglet"]
     # ///
+
   eartools: |
     [tool.uv.sources]
-    eartools = { path = "/Users/philippaebischer/Documents/HRL/Projects/HRL Software Tool", editable = true}
+    eartools = { path = "/Users/philippaebischer/Documents/HRL/Projects/eartools", editable = true}
+
   autoreload: |
     %load_ext autoreload
     %autoreload 2
+
   uv-script: |
     [project.scripts]
     script_name = "prj.file:main" # assuming src/prj/file.py
@@ -26,6 +29,17 @@ py:
 
     [tool.hatch.build.targets.wheel]
     packages = ["src/prj"]
+
+  plt-fig: |
+    fig = plt.figure(figsize=(12, 8))
+  
+    fig.show()
+
+  plt-3dfig: |
+    fig = plt.figure(figsize=(12, 8))
+    ax = fig.add_subplot(111, projection="3d")
+
+    fig.show()
 
 
 text:
