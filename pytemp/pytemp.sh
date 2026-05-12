@@ -17,6 +17,7 @@ pynit() {
 
 nbinit() {
     pynit $1
+    cd $1
     uv add jupyter >/dev/null 2>&1
     uv run jupyter lab --log-level=WARN
 }

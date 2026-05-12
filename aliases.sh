@@ -26,7 +26,7 @@ run() { (cd "$TOOLBELT/run" || return 1; uv run run;) }
 # |_|    \__, ||_|\___|_| |_| |_| .__/
 #        |___/                  |_|
 
-source "$TOOLBELT/pytemp/pytemp.zsh"
+source "$TOOLBELT/pytemp/pytemp.sh"
 
 
 #                          _
