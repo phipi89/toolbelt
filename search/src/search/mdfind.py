@@ -104,6 +104,7 @@ def get_home_indexed_items(limit=None, root=None, recent_days=360, with_meta=Fal
             "total_matches": total_matches,
             "limit": limit,
             "returned": len(selected),
+            "freshest_item_at": items[0]["last_used"] if items else None,
         }
     return selected
 

@@ -26,6 +26,36 @@ def _env_float(name, default):
     return float(os.environ.get(name, str(default)))
 
 
+def _format_relative_time(timestamp, now=None):
+    if timestamp is None:
+        return "unknown"
+    now = now or datetime.now(timezone.utc)
+    delta_seconds = max(0, int((now - timestamp).total_seconds()))
+    if delta_seconds < 60:
+        return "just now"
+    if delta_seconds < 3600:
+        minutes = delta_seconds // 60
+        unit = "minute" if minutes == 1 else "minutes"
+        return f"{minutes} {unit} ago"
+    if delta_seconds < 86400:
+        hours = delta_seconds // 3600
+        unit = "hour" if hours == 1 else "hours"
+        return f"{hours} {unit} ago"
+    days = delta_seconds // 86400
+    unit = "day" if days == 1 else "days"
+    return f"{days} {unit} ago"
+
+
+def _format_index_status(meta):
+    timestamp = meta.get("freshest_item_at")
+    if timestamp is None:
+        return "freshest item: unknown"
+    local_timestamp = timestamp.astimezone()
+    when = local_timestamp.strftime("%Y-%m-%d %H:%M")
+    age = _format_relative_time(timestamp)
+    return f"freshest item: {when} ({age})"
+
+
 def _tokens(query):
     return [part for part in query.lower().split() if part]
 
@@ -322,7 +352,7 @@ def _load_entries(
 def _config():
     return {
         "index_limit": _env_int("FIND_INDEX_LIMIT", 80000),
-        "recent_days": _env_int("FIND_RECENT_DAYS", 360),
+        "recent_days": _env_int("FIND_RECENT_DAYS", 730),
         "refresh_interval": _env_float("FIND_REFRESH_SECONDS", 60),
     }
 
@@ -355,7 +385,8 @@ def main():
     )
     print(
         f"Indexed {len(entries)} items "
-        f"(source={meta['source']}, recent_days={meta['recent_days']}, total_matches={meta['total_matches']})"
+        f"(source={meta['source']}, recent_days={meta['recent_days']}, "
+        f"total_matches={meta['total_matches']}, {_format_index_status(meta)})"
     )
     if args.refresh:
         return
