@@ -8,7 +8,7 @@ from difflib import SequenceMatcher
 import pyperclip
 import yaml
 from prompt_toolkit import PromptSession
-from prompt_toolkit.completion import Completer, Completion, WordCompleter
+from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.shortcuts import CompleteStyle
@@ -61,16 +61,38 @@ def resolve_selection(selection, snippets):
 
 class DedupAliasCompleter(Completer):
     def __init__(self, alias_items, alias_to_key):
-        display_dict = {item: f"{alias_to_key[item]} " for item in alias_items}
+        self.alias_items = alias_items
         self.alias_to_key = alias_to_key
-        self.base = WordCompleter(
-            alias_items, display_dict=display_dict, ignore_case=True, match_middle=True
-        )
 
     def get_completions(self, document, complete_event):
+        text = document.text_before_cursor
+        normalized_input = normalize(text)
         seen = set()
-        for completion in self.base.get_completions(document, complete_event):
-            canonical = self.alias_to_key.get(completion.text, completion.text)
+        scored = []
+        for item in self.alias_items:
+            canonical = self.alias_to_key.get(item, item)
+            if not normalized_input:
+                score = 0
+            else:
+                normalized_item = normalize(item)
+                normalized_canonical = normalize(canonical)
+                score = max(
+                    SequenceMatcher(None, normalized_input, normalized_item).ratio(),
+                    SequenceMatcher(None, normalized_input, normalized_canonical).ratio(),
+                )
+                if normalized_item.startswith(normalized_input):
+                    score += 0.35
+                elif normalized_input in normalized_item:
+                    score += 0.2
+                if normalized_canonical.startswith(normalized_input):
+                    score += 0.35
+                elif normalized_input in normalized_canonical:
+                    score += 0.2
+            if score >= 0.55 or not normalized_input:
+                scored.append((score, item, canonical))
+
+        scored.sort(reverse=True)
+        for _score, _item, canonical in scored:
             if canonical in seen:
                 continue
             seen.add(canonical)
@@ -154,11 +176,29 @@ def parse_args():
         action="store_true",
         help="Close the current window/tab (Cmd+W) after selecting a snippet.",
     )
+    parser.add_argument(
+        "--edit",
+        "--add",
+        action="store_true",
+        help="Open the snippets config file.",
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
+
+    root = pathlib.Path(__file__).parents[3]
+    shared_yaml_path = root / "config" / "snippets" / "snippets.yaml"
+    private_yaml_path = root / "config" / "private" / "snippets.yaml"
+
+    if not shared_yaml_path.exists():
+        print(f"❌ File not found: {shared_yaml_path}")
+        return
+
+    if args.edit:
+        subprocess.run(["open", str(shared_yaml_path)])
+        return
 
     # toilet Snippets -f pagga
     title = [
@@ -172,19 +212,18 @@ def main():
         print(pad * " " + line)
     print()
 
-    root = pathlib.Path(__file__).parents[3]
-    shared_yaml_path = root / "config" / "snippets" / "snippets.yaml"
-    private_yaml_path = root / "config" / "private" / "snippets.yaml"
-
-    if not shared_yaml_path.exists():
-        print(f"❌ File not found: {shared_yaml_path}")
-        return
-
     def load_yaml_dict(path):
         if not path.exists():
             return {}
-        with open(path, "r") as f:
-            data = yaml.safe_load(f)
+        try:
+            with open(path, "r") as f:
+                data = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            print(f"❌ Invalid YAML in {path}:")
+            print(e)
+            input("Press Enter to edit.")
+            subprocess.run(["open", str(path)])
+            return None
         return data if isinstance(data, dict) else {}
 
     def flatten(data):
@@ -199,6 +238,8 @@ def main():
 
     shared_data = load_yaml_dict(shared_yaml_path)
     private_data = load_yaml_dict(private_yaml_path)
+    if shared_data is None or private_data is None:
+        return
 
     categories = list(dict.fromkeys([*shared_data.keys(), *private_data.keys()]))
 
