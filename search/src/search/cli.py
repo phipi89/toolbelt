@@ -53,7 +53,47 @@ def _format_index_status(meta):
     local_timestamp = timestamp.astimezone()
     when = local_timestamp.strftime("%Y-%m-%d %H:%M")
     age = _format_relative_time(timestamp)
-    return f"freshest item: {when} ({age})"
+    return f"freshest item: {age}" # skiping when
+
+
+def _index_summary(entries, meta):
+    return (
+        f"Indexed {len(entries)} items "
+        f"(source={meta['source']}, recent_days={meta['recent_days']}, "
+        f"total_matches={meta['total_matches']}, {_format_index_status(meta)})"
+    )
+
+
+def _index_stats(entries, meta):
+    return [
+        "", # padding line
+        f"indexed items: {len(entries)}",
+        f"source:        {meta['source']}",
+        f"recent days:   {meta['recent_days']}",
+        f"total matches: {meta['total_matches']}",
+        _format_index_status(meta),
+    ]
+
+
+def print_title(entries, meta):
+    title = r"""
+                   _____
+                  /     \______
+                 |  .-""-.     |
+                 | / sea  \    |
+                 | \  rch /    |
+                 |  '-..;\     |
+                 |_______\\____|
+                          \\
+""".strip("\n").splitlines()
+    stats = _index_stats(entries, meta)
+    gap = "        "
+    print()
+    for i in range(max(len(title), len(stats))):
+        left = title[i] if i < len(title) else ""
+        right = stats[i - 1] if 0 < i <= len(stats) else ""
+        print(f"{left:<36}{gap}{right}")
+    print()
 
 
 def _tokens(query):
@@ -383,14 +423,11 @@ def main():
         with_meta=True,
         compute_total=False,
     )
-    print(
-        f"Indexed {len(entries)} items "
-        f"(source={meta['source']}, recent_days={meta['recent_days']}, "
-        f"total_matches={meta['total_matches']}, {_format_index_status(meta)})"
-    )
     if args.refresh:
+        print(_index_summary(entries, meta))
         return
 
+    print_title(entries, meta)
 
     selection, found = interactive(
         entries,
