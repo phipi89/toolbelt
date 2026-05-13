@@ -125,11 +125,11 @@ def parsing_overview():
     return (
         "Formatting options:\n"
         "  timepoint: HH:MM (also HHMM, HHhMM), or signed delta like -34m / +1h32m\n"
-        "  interval:  <timepoint>--<timepoint>\n"
+        "  interval:  <timepoint>-<timepoint>\n"
         "  start/end: clk start [timepoint], clk end [timepoint]\n"
-        "  break:     clk break, clk break <timepoint>, clk break <start> <+/-duration>, clk break <start--end>\n"
-        "  session:   clk session [DD.MM.YY] <start--end>\n"
-        "             clk session [DD.MM.YY] <start--(break_start--break_end)--end>"
+        "  break:     clk break, clk break <timepoint>, clk break <start> <+/-duration>, clk break <start-end>\n"
+        "  session:   clk session [DD.MM.YY] <start-end>\n"
+        "             clk session [DD.MM.YY] <start-(break_start-break_end)-end>"
     )
 
 
@@ -194,7 +194,7 @@ def parse_timepoint(token, ref, fixed_date=None):
     return out
 
 
-def split_top_level(text, sep="--"):
+def split_top_level(text, sep="-"):
     parts = []
     buf = []
     depth = 0
@@ -221,7 +221,7 @@ def split_top_level(text, sep="--"):
 
 
 def parse_interval(expr, ref, fixed_date=None):
-    parts = split_top_level(expr, "--")
+    parts = split_top_level(expr, "-")
     if len(parts) != 2 or not parts[0] or not parts[1]:
         raise ParseError(f"Invalid interval: {expr!r}")
     a = parse_timepoint(parts[0], ref, fixed_date=fixed_date)
@@ -232,9 +232,9 @@ def parse_interval(expr, ref, fixed_date=None):
 
 
 def parse_session_spec(spec, ref, fixed_date):
-    parts = split_top_level(spec, "--")
+    parts = split_top_level(spec, "-")
     if len(parts) < 2:
-        raise ParseError("Session range is missing '--'.")
+        raise ParseError("Session range is missing '-'.")
     start = parse_timepoint(parts[0], ref, fixed_date=fixed_date)
     end = parse_timepoint(parts[-1], ref, fixed_date=fixed_date)
     if end <= start:
@@ -636,7 +636,12 @@ def cmd_end(args):
         print(current_state_text(db))
         return 1
     db_before = json.loads(json.dumps(db))
-    t1 = now() if args.when is None else parse_timepoint(args.when, now())
+    n = now()
+    day = n.date() - timedelta(days=1) if args.yesterday else None
+    if args.when is None:
+        t1 = n if day is None else datetime.combine(day, n.timetz())
+    else:
+        t1 = parse_timepoint(args.when, n, fixed_date=day)
     b = active_break(sess)
     if b:
         b["end"] = dt_to_s(t1)
@@ -686,7 +691,7 @@ def cmd_break(args):
 
     if len(values) == 1:
         raw = values[0]
-        if "--" in raw:
+        if "-" in raw and not raw.startswith(("-", "+")):
             startp, endp = parse_interval(raw, n)
         else:
             try:
@@ -758,7 +763,7 @@ def cmd_session(args):
         day = parse_date_token(parts[0])
         spec = parts[1]
     else:
-        raise ParseError("Usage: clk session [DD.MM.YY] <start--end>")
+        raise ParseError("Usage: clk session [DD.MM.YY] <start-end>")
 
     if current_session(db) and day == now().date():
         print(
@@ -803,14 +808,21 @@ def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] in {"start", "end", "stop", "break", "pause"}:
         rest = argv[1:]
+        signed_delta = re.compile(r"[+-](?:(\d+)h)?(?:(\d+)m)?")
         if (
             rest
             and "--" not in rest
             and "-h" not in rest
             and "--help" not in rest
-            and any(re.fullmatch(r"[+-](?:(\d+)h)?(?:(\d+)m)?", x.lower()) for x in rest)
+            and any(signed_delta.fullmatch(x.lower()) for x in rest)
         ):
-            argv = [argv[0], "--", *rest]
+            options = [
+                x
+                for x in rest
+                if x.startswith("--") and not signed_delta.fullmatch(x.lower())
+            ]
+            values = [x for x in rest if x not in options]
+            argv = [argv[0], *options, "--", *values]
 
     p = argparse.ArgumentParser(prog="clk", add_help=True)
     sub = p.add_subparsers(dest="cmd")
@@ -826,6 +838,11 @@ def main(argv=None):
         "end", aliases=["stop"], help="end the current session (stop alias)"
     )
     pe.add_argument("when", nargs="?", help="timepoint: HH:MM or signed delta (+/-)")
+    pe.add_argument(
+        "--yesterday",
+        action="store_true",
+        help="interpret clock time as yesterday instead of today",
+    )
     pe.set_defaults(fn=cmd_end)
 
     pb = sub.add_parser(
@@ -836,7 +853,7 @@ def main(argv=None):
     pb.add_argument(
         "values",
         nargs="*",
-        help="none, <timepoint>, <start--end>, or <start> <+/-duration>",
+        help="none, <timepoint>, <start-end>, or <start> <+/-duration>",
     )
     pb.set_defaults(fn=cmd_break)
 
@@ -844,7 +861,7 @@ def main(argv=None):
     pss.add_argument(
         "parts",
         nargs="+",
-        help="session [DD.MM.YY] <start--end> or <start--(break--break)--end>",
+        help="session [DD.MM.YY] <start-end> or <start-(break-break)-end>",
     )
     pss.set_defaults(fn=cmd_session)
 
