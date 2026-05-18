@@ -1,4 +1,5 @@
 import argparse
+import fnmatch
 import os
 import subprocess
 import sys
@@ -16,6 +17,25 @@ from prompt_toolkit.shortcuts import CompleteStyle
 from prompt_toolkit.styles import Style
 
 from . import mdfind
+
+
+_IGNORED_SEARCH_DIRS = {
+    ".cache",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pycache__",
+    "dist-packages",
+    "node_modules",
+    "old",
+    "site-packages",
+    "venv",
+}
 
 
 def _env_int(name, default):
@@ -187,6 +207,146 @@ def display_path(path, base_path):
     return path
 
 
+def _starts_path_mode(query):
+    return query.startswith("/") or query.startswith("~/")
+
+
+def _path_completion_entries(query):
+    expanded = os.path.expanduser(query)
+    has_trailing_sep = expanded.endswith(os.sep)
+    directory = expanded if has_trailing_sep else os.path.dirname(expanded)
+    prefix = "" if has_trailing_sep else os.path.basename(expanded)
+    if not directory:
+        directory = os.sep if expanded.startswith(os.sep) else "."
+
+    try:
+        names = os.listdir(directory)
+    except OSError:
+        return []
+
+    matches = []
+    prefix_l = prefix.lower()
+    home = str(Path.home())
+    for name in names:
+        if name.startswith(".") and not prefix.startswith("."):
+            continue
+        if prefix and not name.lower().startswith(prefix_l):
+            continue
+        path = os.path.join(directory, name)
+        is_dir = os.path.isdir(path)
+        completion_path = path + os.sep if is_dir else path
+        if query.startswith("~") and completion_path.startswith(home):
+            completion_path = "~" + completion_path[len(home) :]
+        matches.append((not is_dir, name.lower(), completion_path))
+    matches.sort()
+    return [path for _, _, path in matches]
+
+
+def _quoted_find_pattern(query):
+    if not query.startswith('"') or len(query) < 2 or not query.endswith('"'):
+        return None
+    pattern = query[1:-1].strip()
+    return pattern or None
+
+
+def _is_ignored_search_dir(name):
+    if name in _IGNORED_SEARCH_DIRS:
+        return True
+    return name.startswith("python") and any(ch.isdigit() for ch in name)
+
+
+def _is_ignored_search_path(path):
+    return any(_is_ignored_search_dir(part) for part in Path(path).parts)
+
+
+def _entry_recency(entry, fallback):
+    last_used = entry.get("last_used")
+    if last_used is None:
+        return -fallback
+    return last_used.timestamp()
+
+
+def _mtime(path):
+    try:
+        return os.path.getmtime(path)
+    except OSError:
+        return 0
+
+
+def _indexed_search_roots(entries, max_roots=2000):
+    home = str(Path.home())
+    roots = []
+    seen = set()
+    recent_entries = sorted(
+        enumerate(entries),
+        key=lambda item: _entry_recency(item[1], item[0]),
+        reverse=True,
+    )
+    for _, entry in recent_entries:
+        path = entry["path"]
+        if _is_ignored_search_path(path):
+            continue
+        root = path if os.path.isdir(path) else os.path.dirname(path)
+        if not root or root == home or not os.path.isdir(root):
+            continue
+        real_root = os.path.realpath(root)
+        if real_root in seen:
+            continue
+        if any(os.path.commonpath([existing, real_root]) == existing for existing in seen):
+            continue
+        seen.add(real_root)
+        roots.append(root)
+        if len(roots) >= max_roots:
+            break
+    return roots
+
+
+def _iter_find_completion_entries(
+    query, entries, max_results, progress=None, should_cancel=None
+):
+    pattern = _quoted_find_pattern(query)
+    if not pattern:
+        return
+
+    seen = set()
+    found = 0
+    pattern_l = pattern.lower()
+    for root in _indexed_search_roots(entries):
+        if should_cancel and should_cancel():
+            return
+        for dirpath, dirnames, filenames in os.walk(root):
+            if should_cancel and should_cancel():
+                return
+            dirnames[:] = [
+                name
+                for name in dirnames
+                if not _is_ignored_search_dir(name)
+                and not (name.startswith(".") and not pattern.startswith("."))
+            ]
+            dirnames.sort(
+                key=lambda name: _mtime(os.path.join(dirpath, name)), reverse=True
+            )
+            filenames.sort(
+                key=lambda name: _mtime(os.path.join(dirpath, name)), reverse=True
+            )
+            if progress:
+                progress(dirpath)
+            for name in [*dirnames, *filenames]:
+                if should_cancel and should_cancel():
+                    return
+                if not fnmatch.fnmatch(name.lower(), pattern_l):
+                    continue
+                path = os.path.join(dirpath, name)
+                real_path = os.path.realpath(path)
+                if real_path in seen:
+                    continue
+                seen.add(real_path)
+                found += 1
+                yield path
+                if found >= max_results:
+                    return
+
+
 def _promote_directory_match(query, ranked_entries):
     if not query.endswith("/"):
         return ranked_entries
@@ -240,6 +400,10 @@ class RecencyFuzzyCompleter(Completer):
         self.max_results = max_results
         self.current_base_path = default_base or ""
         self.current_query = ""
+        self.is_searching = False
+        self.invalidate_ui = None
+        self._find_cache = {}
+        self._cancel_search = threading.Event()
 
     def update_entries(self, entries):
         with self._lock:
@@ -248,11 +412,20 @@ class RecencyFuzzyCompleter(Completer):
 
     def has_path(self, path):
         with self._lock:
-            return path in self._paths or os.path.exists(path)
+            expanded = os.path.expanduser(path)
+            return path in self._paths or os.path.exists(expanded)
 
     def _entries_snapshot(self):
         with self._lock:
             return list(self.entries)
+
+    def set_search_progress(self, path):
+        self.current_base_path = path
+        if self.invalidate_ui:
+            self.invalidate_ui()
+
+    def cancel_search(self):
+        self._cancel_search.set()
 
     def ranked(self, query):
         score_query = query[:-1] if query.endswith("/") else query
@@ -280,6 +453,69 @@ class RecencyFuzzyCompleter(Completer):
 
     def get_completions(self, document, _complete_event):
         query = document.text_before_cursor.strip()
+        if _starts_path_mode(query):
+            self.current_query = query
+            self.current_base_path = os.path.dirname(os.path.expanduser(query)) or os.sep
+            for path in _path_completion_entries(query):
+                yield Completion(
+                    path,
+                    start_position=-len(document.text_before_cursor),
+                    display=path,
+                )
+            return
+
+        if query.startswith('"'):
+            self.current_query = query
+            self.current_base_path = str(Path.home())
+            pattern = _quoted_find_pattern(query)
+            if pattern is None:
+                return
+            if query in self._find_cache:
+                paths = self._find_cache[query]
+                for path in paths:
+                    yield Completion(
+                        path,
+                        start_position=-len(document.text_before_cursor),
+                        display=highlight_text(
+                            path,
+                            query[1:-1],
+                        ),
+                    )
+            else:
+                paths = []
+                self.cancel_search()
+                self._cancel_search = threading.Event()
+                cancel_search = self._cancel_search
+                self.is_searching = True
+                self.set_search_progress(str(Path.home()))
+                entries = self._entries_snapshot()
+                try:
+                    for path in _iter_find_completion_entries(
+                        query,
+                        entries,
+                        self.max_results,
+                        progress=self.set_search_progress,
+                        should_cancel=cancel_search.is_set,
+                    ):
+                        paths.append(path)
+                        yield Completion(
+                            path,
+                            start_position=-len(document.text_before_cursor),
+                            display=highlight_text(
+                                path,
+                                query[1:-1],
+                            ),
+                        )
+                    if not cancel_search.is_set():
+                        self._find_cache[query] = paths
+                finally:
+                    self.is_searching = False
+                    if self.invalidate_ui:
+                        self.invalidate_ui()
+            return
+
+        self.cancel_search()
+        self.is_searching = False
         ranked_entries = self.ranked(query)
         self.current_query = query
         self.current_base_path = self._common_base(ranked_entries)
@@ -327,47 +563,71 @@ def interactive(entries, refresh_interval, load_entries):
         }
     )
 
+    def toolbar_text():
+        if completer.is_searching:
+            return f" ⏳ searching in {completer.current_base_path or home}"
+        label = "Search" if completer.current_query.startswith('"') else "Base path"
+        return f" {label}: {completer.current_base_path or home}"
+
     session = PromptSession(
         completer=completer,
         complete_while_typing=True,
+        complete_in_thread=True,
         key_bindings=kb,
         complete_style=CompleteStyle.COLUMN,
         style=style,
-        bottom_toolbar=lambda: f" Base path: {completer.current_base_path or home}",
+        bottom_toolbar=toolbar_text,
     )
+    completer.invalidate_ui = session.app.invalidate
 
     def _completions_for_buffer(buffer):
         doc = Document(text=buffer.text, cursor_position=buffer.cursor_position)
         return list(completer.get_completions(doc, None))
 
-    def _accept_nth(buffer, index):
-        completions = _completions_for_buffer(buffer)
-        if 0 <= index < len(completions):
-            buffer.apply_completion(completions[index])
-            return True
-        return False
-
     def accept_best(buffer):
         state = buffer.complete_state
         if state and state.current_completion:
             buffer.apply_completion(state.current_completion)
-            return
+            return True
         completions = _completions_for_buffer(buffer)
         if completions:
             buffer.apply_completion(completions[0])
+            return True
+        return False
+
+    @kb.add("tab")
+    def _(event):
+        buffer = event.app.current_buffer
+        query = buffer.text.strip()
+        if query.startswith('"'):
+            state = buffer.complete_state
+            if state and state.current_completion:
+                completer.cancel_search()
+                buffer.apply_completion(state.current_completion)
+                event.app.exit(result=buffer.text)
+            elif _quoted_find_pattern(query):
+                buffer.start_completion(select_first=False)
+            return
+        if accept_best(buffer):
+            buffer.start_completion(select_first=False)
 
     @kb.add("enter")
     def _(event):
         buffer = event.app.current_buffer
-        accept_best(buffer)
-        event.app.exit(result=buffer.text)
-
-    for n in range(1, 10):
-        @kb.add(str(n))
-        def _(event, n=n):
-            buffer = event.app.current_buffer
-            if _accept_nth(buffer, n - 1):
+        query = buffer.text.strip()
+        if query.startswith('"'):
+            state = buffer.complete_state
+            if state and state.current_completion:
+                completer.cancel_search()
+                buffer.apply_completion(state.current_completion)
                 event.app.exit(result=buffer.text)
+                return
+            if _quoted_find_pattern(query):
+                buffer.start_completion(select_first=False)
+                return
+        if accept_best(buffer):
+            completer.cancel_search()
+        event.app.exit(result=buffer.text)
 
     _start_refresh_thread(refresh_interval, load_entries, completer, stop_refresh)
 
@@ -398,6 +658,7 @@ def _config():
 
 
 def _open_in_finder(path):
+    path = os.path.expanduser(path)
     if os.path.isdir(path):
         subprocess.run(["open", path], check=False)
     else:
