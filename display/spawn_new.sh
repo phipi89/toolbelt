@@ -5,7 +5,7 @@ SPAWN_SCRIPT=$2
 printf '[spawn_new.sh] start app="%s"\n' "$APP_NAME"
 printf '[spawn_new.sh] spawn_script_len=%s\n' "${#SPAWN_SCRIPT}"
 
-hs -c '
+hs -n -c '
 local appName = [==['"$APP_NAME"']==]
 local spawnScript = [==['"$SPAWN_SCRIPT"']==]
 
@@ -28,7 +28,7 @@ dbg("currentSpace id=" .. tostring(currentSpace))
 local app = hs.application.get(appName)
 dbg("app running=" .. tostring(app ~= nil))
 
-local function getAppWindows(appObj)
+local function getAppWindows(appObj, includeGlobal)
   if not appObj then return {} end
 
   local windowsById = {}
@@ -49,20 +49,22 @@ local function getAppWindows(appObj)
   addWindow(appObj:focusedWindow(), "app:focusedWindow")
   addWindow(appObj:mainWindow(), "app:mainWindow")
 
-  local pid = appObj:pid()
-  for _, win in ipairs(hs.window.allWindows()) do
-    local winApp = win:application()
-    if winApp and winApp:pid() == pid then
-      addWindow(win, "hs.window.allWindows")
+  if includeGlobal then
+    local pid = appObj:pid()
+    for _, win in ipairs(hs.window.allWindows()) do
+      local winApp = win:application()
+      if winApp and winApp:pid() == pid then
+        addWindow(win, "hs.window.allWindows")
+      end
     end
   end
 
   return windows
 end
 
-local function findWindowById(appObj, wantedId)
+local function findWindowById(appObj, wantedId, includeGlobal)
   if not wantedId then return nil end
-  for _, win in ipairs(getAppWindows(appObj)) do
+  for _, win in ipairs(getAppWindows(appObj, includeGlobal)) do
     if win:id() == wantedId then
       return win
     end
@@ -227,7 +229,7 @@ end
 -- Fallback: some apps reuse an existing window instead of creating a new one
 if not newWin then
   dbg("no new window detected; falling back to focusedWindow/mainWindow")
-  local targetedWin = findWindowById(app, spawnedWindowId)
+  local targetedWin = findWindowById(app, spawnedWindowId, true)
   if targetedWin then
     newWin = targetedWin
   else

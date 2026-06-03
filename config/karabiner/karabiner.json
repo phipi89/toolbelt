@@ -25,32 +25,39 @@
                             {
                                 "from": {
                                     "key_code": "comma",
-                                    "modifiers": {
-                                        "mandatory": ["right_command"],
-                                        "optional": ["any"]
-                                    }
+                                    "modifiers": { "mandatory": ["right_command"] }
                                 },
                                 "to": [{ "shell_command": "$HOME/toolbelt/display/move/left.sh" }],
                                 "type": "basic"
                             },
                             {
                                 "from": {
+                                    "key_code": "comma",
+                                    "modifiers": { "mandatory": ["right_command", "shift"] }
+                                },
+                                "to": [{ "shell_command": "$HOME/toolbelt/display/move/split.sh" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
                                     "key_code": "period",
-                                    "modifiers": {
-                                        "mandatory": ["right_command"],
-                                        "optional": ["any"]
-                                    }
+                                    "modifiers": { "mandatory": ["right_command"] }
                                 },
                                 "to": [{ "shell_command": "$HOME/toolbelt/display/move/right.sh" }],
                                 "type": "basic"
                             },
                             {
                                 "from": {
+                                    "key_code": "period",
+                                    "modifiers": { "mandatory": ["right_command", "shift"] }
+                                },
+                                "to": [{ "shell_command": "$HOME/toolbelt/display/move/split.sh --frontmost-right" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
                                     "key_code": "l",
-                                    "modifiers": {
-                                        "mandatory": ["right_command"],
-                                        "optional": ["any"]
-                                    }
+                                    "modifiers": { "mandatory": ["right_command"] }
                                 },
                                 "to": [{ "shell_command": "$HOME/toolbelt/display/move/center.sh" }],
                                 "type": "basic"
