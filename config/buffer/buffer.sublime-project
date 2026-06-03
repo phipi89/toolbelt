@@ -1,0 +1,17 @@
+{
+  "folders": [],
+  "settings": {
+    "color_scheme": "Mariana.sublime-color-scheme",
+    "font_size": 18,
+    "word_wrap": true,
+    "line_numbers": false,
+    "gutter": false,
+    "highlight_line": false,
+    "draw_minimap_border": false,
+    "show_definitions": false,
+    "auto_complete": false,
+    "spell_check": false,
+    "translate_tabs_to_spaces": true,
+    "tab_size": 2
+  }
+}

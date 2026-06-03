@@ -299,7 +299,7 @@
                                     "key_code": "t",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "$HOME/toolbelt/display/manage.sh 'Sublime Text'" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/buffer/open.sh" }],
                                 "type": "basic"
                             },
                             {

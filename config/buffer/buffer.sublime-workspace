@@ -1,0 +1,390 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"tempo",
+				"temporal_bone_raw"
+			],
+			[
+				"surgica",
+				"surgical_video_frame"
+			],
+			[
+				"initial",
+				"initial_parameters"
+			],
+			[
+				"_load",
+				"_load_transverse_el_position"
+			],
+			[
+				"Not",
+				"NotImplementedError"
+			],
+			[
+				"surgeons",
+				"surgeons"
+			],
+			[
+				"gaus",
+				"gaussian_filter1d"
+			],
+			[
+				"hgi",
+				"highlight_segment"
+			],
+			[
+				"tip_",
+				"tip_coords_y"
+			],
+			[
+				"tip_coo",
+				"tip_coords_x"
+			],
+			[
+				"skip",
+				"skip_AID_computation"
+			],
+			[
+				"ski",
+				"skip_AID_computation"
+			],
+			[
+				"neae",
+				"nearest_y"
+			],
+			[
+				"checksum",
+				"check_sum"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"json",
+				"Pretty JSON: Format JSON"
+			],
+			[
+				"json pre",
+				"Pretty JSON: Format JSON"
+			],
+			[
+				"outline",
+				"Browse Mode: Outline (Right)"
+			],
+			[
+				"brows",
+				"Browse Mode: Outline (Right)"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control : Install Package",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: sear",
+				"Package Control: Discover Packages"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 318.0,
+		"history":
+		[
+			"Package Control: install PlainTasks"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/philippaebischer/toolbelt/config/buffer/buffer.txt",
+		"/Users/philippaebischer/.clk_log.json",
+		"/Users/philippaebischer/Documents/HRL/Projects/Robotic_Vestibular_Implantation/analysis/pyproject.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI impedance simulation/analysis/pyproject.toml",
+		"/Users/philippaebischer/toolbelt/config/iTerm2/com.googlecode.iterm2.plist",
+		"/Users/philippaebischer/Documents/HRL/Reviews/2026/coating/feedback.md",
+		"/Users/philippaebischer/toolbelt/aliases.sh",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Twist/data/cadaver/01/oto/CaseData.xml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI impedance simulation/analysis/cache/AP.pkl",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI impedance simulation/analysis/cache/BR.pkl",
+		"/Users/philippaebischer/toolbelt/display/move_here.sh",
+		"/Users/philippaebischer/toolbelt/misc/list_commands.sh",
+		"/Users/philippaebischer/toolbelt/display/spawn_new.sh",
+		"/Users/philippaebischer/toolbelt/display/manage.sh",
+		"/Users/philippaebischer/toolbelt/config/snippets/snippets.yaml",
+		"/Volumes/HRL 42GB/HEARO_logs_2026-04-23_11-22-32_2026-04-23_2026-04-29/2026-04-23_11-22-32/CAS-One Recordings/2026-04-23_11-20-04/ForceData",
+		"/Volumes/HRL 42GB/HEARO_logs_2026-04-23_11-22-32_2026-04-23_2026-04-29/2026-04-23_11-22-32/CAS-One Recordings/2026-04-23_11-20-04/Controller_logs/force.log",
+		"/Users/philippaebischer/toolbelt/pytemp/pytemp.zsh",
+		"/Users/philippaebischer/toolbelt/display/move/center.sh",
+		"/Users/philippaebischer/toolbelt/search/run.sh",
+		"/Users/philippaebischer/Documents/HRL/Projects/Robotic_Vestibular_Surgery/analysis/src/temporal_bone.py",
+		"/Users/philippaebischer/Documents/HRL/Projects/Robotic_Vestibular_Surgery/analysis/pyproject.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/Robotic_Vestibular_Surgery/data/dehiscence/04_Englisch/Pat_Englisch_Dieter/Study_7763b4c9/Series_1347796a/OtoPlanRecordings/40d99737/CaseData.xml",
+		"/Users/philippaebischer/Documents/HRL/Projects/Robotic_Vestibular_Surgery/data/dehiscence/04_Englisch/Pat_Englisch_Dieter/Study_7763b4c9/Series_1347796a/OtoPlanRecordings/8f64e70b/CaseData.xml",
+		"/Users/philippaebischer/toolbelt/run/src/run/cli.py",
+		"/Users/philippaebischer/toolbelt/search/src/search/cli.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/offiziell/summary.md",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI impedances/Cochlear/pyproject.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Twist/data/cadaver/08/info.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Twist/data/cadaver/06/postop/Series_4d2ae80e/metadata.ini",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Twist/backup.sh",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/data/clinical/14735610/postop/Series_f501735a/AnonymizationMetadata.ini",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/data/clinical/_trash/6997635/Pat_86848473/Study_02723d68/Series_68b42d32/AnonymizationMetadata.ini",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/data/clinical/_841080/Pat_18485709/Study_33259749/Series_968981cf/AnonymizationMetadata.ini",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/data/clinical/2732491/preop/Series_e4cdca4c/AnonymizationMetadata.ini",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/data/clinical/2732491/preop/Series_e4cdca4c/OtoPlanRecordings/0ccc96f4/CaseData.xml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/data/µct-willi/FE2L_1048/info.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/data/µct-willi/FE1L_1047/info.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/data/µct-willi/9R_1120/info.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/data/µct-willi/7L_1118/info.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/data/µct-willi/5L_1115/info.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/data/µct-willi/2R_1113/info.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/analysis/pyproject.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/Haptic Hearing Aid/Paper/wip/rewrite v1/main.tex",
+		"/Users/philippaebischer/toolbelt/config/window_management/setup.yaml",
+		"/Users/philippaebischer/Documents/HRL/Projects/Haptic Hearing Aid/backup.sh",
+		"/Users/philippaebischer/toolbelt/snippets/pyproject.toml",
+		"/Users/philippaebischer/toolbelt/clk/src/clk/cli.py",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Implant_Pose/backup.sh",
+		"/Users/philippaebischer/toolbelt/config/private/facts.txt",
+		"/Users/philippaebischer/toolbelt/window_management/spawn_new.sh",
+		"/Users/philippaebischer/toolbelt/window_management/move/center.sh",
+		"/Users/philippaebischer/toolbelt/window_management/manage_windows.sh",
+		"/Users/philippaebischer/toolbelt/window_management/move/left.sh",
+		"/Users/philippaebischer/Documents/HRL/Projects/Artificial Temporal Bone/experiments/02 HPW contest/src/insertion.py",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Locator/data/kinetic centerline/7670.json",
+		"/Users/philippaebischer/toolbelt/window_management/test.sh",
+		"/Volumes/HRL 1TB/yannik/unzugeordnete Daten/Download/Videos/18462300/convert.sh",
+		"/Users/philippaebischer/toolbelt/window_management/select.sh",
+		"/Users/philippaebischer/Documents/HRL/Abstracts and Presentations/2026 SGORL/RVI.md",
+		"/Users/philippaebischer/Documents/HRL/Projects/Haptic Hearing Aid/MATLAB/Audio_Plots.m",
+		"/Users/philippaebischer/toolbelt/misc/compose_mail.sh",
+		"/Users/philippaebischer/toolbelt/config/snippets/snipptes.yaml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI insertion tool/insertion studies/manual insertions/src/insertions.py",
+		"/Users/philippaebischer/Documents/HRL/Projects/OtoDrive/01 In-Vitro/analysis/02 implant fixation/pyproject.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/OtoDrive/01 In-Vitro/analysis/pyproject.toml",
+		"/Users/philippaebischer/toolbelt/run/run.sh",
+		"/Users/philippaebischer/toolbelt/grab/grab.sh",
+		"/Users/philippaebischer/toolbelt/run/pyproject.toml",
+		"/Users/philippaebischer/.zshrc",
+		"/Users/philippaebischer/toolbelt/misc/textitle.py",
+		"/Users/philippaebischer/toolbelt/aliases.zsh",
+		"/Users/philippaebischer/.zsh",
+		"/Users/philippaebischer/toolbelt/auth.zsh",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI_Locator/µct/94571/info.toml",
+		"/Users/philippaebischer/Downloads/v2.txt",
+		"/Users/philippaebischer/Downloads/v1",
+		"/Users/philippaebischer/Downloads/v2",
+		"/Users/philippaebischer/Documents/HRL/Administratives/Philipp/Arbeitszeit/raycast/clk.sh",
+		"/Users/philippaebischer/Documents/HRL/Administratives/Philipp/Arbeitszeit/src/clk/cli.py",
+		"/Users/philippaebischer/Documents/HRL/Administratives/Philipp/Arbeitszeit/pyproject.toml",
+		"/Users/philippaebischer/Documents/HRL/Administratives/Philipp/Arbeitszeit/clk.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/submissions/Exercise 11_ Automation/Abgaben/59_Robles_Rachel Michelle_r.robles_3614112/# Feedback.md",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/submissions/Exercise 12+ Project/feedback.md",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/submissions/Exercise 12+ Project/Robles_Rachel/causal_explorer/pyproject.toml",
+		"/Users/philippaebischer/.cache/uv/archive-v0/S4vIAw3XKIKkN-Cl0aWSu/lib/python3.13/site-packages/xmas.py",
+		"/Users/philippaebischer/Documents/HRL/Projects/Robotic_Vestibular_Implantation/analysis/src/temporal_bone.py",
+		"/Users/philippaebischer/Documents/HRL/Projects/HRL Software Tool/eartools/latex/textitle.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/course/11 Automation/resources/slicer/prepare_volumes.py",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI Locator/cases/AP/preop/Series_238192preopRight/OtoPlanRecordings/30c764f4/CaseData.xml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI Locator/cases/AP/preop/Series_238192preopRight/OtoPlanRecordings/30c764f4/ElectrodeContacts.xml",
+		"/Users/philippaebischer/Documents/HRL/Projects/HRL Software Tool/pyproject.toml",
+		"/Users/philippaebischer/Documents/HRL/Projects/CI Locator/analysis/pyproject.toml",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/submissions/Exercise 06_ Modules and Packages/Abgaben/13_Injodikaran_Jasmin_j.injodikaran_1864610/toolbelt/handin/__main__.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/src/random_sort_handins.txt",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/src/Neue Textdatei.txt",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/.venv/lib/python3.13/site-packages/directory_tree/tree_driver.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/course/06 Modules and Packages/to",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/course/06 Modules and Packages/Python/.venv/lib/python3.13/site-packages/directory_tree/tree_driver.py",
+		"/private/var/folders/v0/lks_2q9901z19jmgj9113y900000gn/T/tmp.ZycD8iqhSZ/temp_env/pyproject.toml",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/src/exercices2markdown.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/course/05 Exceptions/implant_log.csv",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/course/05 Exceptions/vocode_fixed.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/course/05 Exceptions/vocode.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/course/05 Exceptions/vocode_with_errors.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/course/05 Exceptions/vocode_with_errors Kopie.py",
+		"/Volumes/CIRCUITPY/code.py",
+		"/Users/philippaebischer/.local/share/uv/python/cpython-3.13.3-macos-aarch64-none/lib/python3.13/this.py",
+		"/private/var/folders/v0/lks_2q9901z19jmgj9113y900000gn/T/tmp.beKJgfUf4I/temp_env/pyproject.toml",
+		"/private/var/folders/v0/lks_2q9901z19jmgj9113y900000gn/T/tmp.beKJgfUf4I/temp_env/.python-version",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/submissions/Exercise 02_ Syntax/Abgaben/Wuethrich_Joan_j.wuthrich2_2361694/Exercise02_WuethrichJoan.md",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/submissions/Exercise 02_ Syntax/Abgaben/Srinivasan_Shantha Kumar_s.srinivasan_4528330/Exercises02_SrinivasanShantha_Kumar.md",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/submissions/Exercise 02_ Syntax/Abgaben/Wuethrich_Joan_j.wuthrich2_2361694/Exercise02_WuethrichJoan.ipynb",
+		"/Users/philippaebischer/.ssh/config",
+		"/Users/philippaebischer/.ssh/authorized_keys",
+		"/private/var/folders/v0/lks_2q9901z19jmgj9113y900000gn/T/tmp.eBw1ZEj5J3/temp_env/pyproject.toml",
+		"/private/var/folders/v0/lks_2q9901z19jmgj9113y900000gn/T/tmp.eBw1ZEj5J3/temp_env/.python-version",
+		"/private/tmp/quitlook/pyproject.toml",
+		"/private/tmp/playground/pyproject.toml",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/pyproject.toml",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/course/09 Vibe Coding/copilot logs.txt",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/course/02 Syntax/02 Syntax.md",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/src/nb2slides.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/src/nb2markdown.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/src/to_markdown.py",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/course/03 Virtual Environments/project-uv/pyproject.toml",
+		"/Users/philippaebischer/Documents/Lectures/Introduction to Python/.gitignore"
+	],
+	"find":
+	{
+		"height": 39.0
+	},
+	"find_in_files":
+	{
+		"height": 101.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"scrollbar_highlights": true,
+		"show_context": true,
+		"use_buffer2": true,
+		"use_gitignore": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 43.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"pinned_build_system": "",
+	"project": "buffer.sublime-project",
+	"replace":
+	{
+		"height": 50.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": false,
+	"show_open_files": true,
+	"show_tabs": false,
+	"side_bar_visible": false,
+	"side_bar_width": 235.0,
+	"status_bar_visible": false,
+	"template_settings":
+	{
+	}
+}
