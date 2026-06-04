@@ -96,11 +96,16 @@
                                 "type": "basic"
                             },
                             {
+                                "from": { "key_code": "caps_lock" },
+                                "to": [{ "shell_command": "$HOME/toolbelt/display/move/cycle.sh" }],
+                                "type": "basic"
+                            },
+                            {
                                 "from": {
                                     "key_code": "caps_lock",
-                                    "modifiers": { "optional": ["any"] }
+                                    "modifiers": { "mandatory": ["shift"] }
                                 },
-                                "to": [{ "shell_command": "$HOME/toolbelt/display/cycle.sh" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/display/move/cycle.sh --third" }],
                                 "type": "basic"
                             }
                         ]
