@@ -309,6 +309,14 @@
                             },
                             {
                                 "from": {
+                                    "key_code": "t",
+                                    "modifiers": { "mandatory": ["right_gui", "shift"] }
+                                },
+                                "to": [{ "shell_command": "$HOME/toolbelt/buffer/open.sh --clear" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
                                     "key_code": "a",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
