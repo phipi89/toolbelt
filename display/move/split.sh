@@ -31,8 +31,6 @@ local leftHalf = hs.geometry.rect(sf.x, sf.y, sf.w / 2, sf.h)
 local rightHalf = hs.geometry.rect(sf.x + sf.w / 2, sf.y, sf.w / 2, sf.h)
 local leftTwoThirds = hs.geometry.rect(sf.x, sf.y, sf.w * 2 / 3, sf.h)
 local rightOneThird = hs.geometry.rect(sf.x + sf.w * 2 / 3, sf.y, sf.w / 3, sf.h)
-local leftOneThird = hs.geometry.rect(sf.x, sf.y, sf.w / 3, sf.h)
-local rightTwoThirds = hs.geometry.rect(sf.x + sf.w / 3, sf.y, sf.w * 2 / 3, sf.h)
 
 local function close(a, b) return math.abs(a - b) <= tol end
 local function same(a, b)
@@ -45,21 +43,11 @@ if frontmostRight then
 end
 
 local isHalf = same(leftWin:frame(), leftHalf) and same(rightWin:frame(), rightHalf)
-local isWeighted = nil
-if frontmostRight then
-  isWeighted = same(leftWin:frame(), leftOneThird) and same(rightWin:frame(), rightTwoThirds)
-else
-  isWeighted = same(leftWin:frame(), leftTwoThirds) and same(rightWin:frame(), rightOneThird)
-end
+local isWeighted = same(leftWin:frame(), leftTwoThirds) and same(rightWin:frame(), rightOneThird)
 
 if isHalf then
-  if frontmostRight then
-    leftWin:setFrame(leftOneThird, 0)
-    rightWin:setFrame(rightTwoThirds, 0)
-  else
-    leftWin:setFrame(leftTwoThirds, 0)
-    rightWin:setFrame(rightOneThird, 0)
-  end
+  leftWin:setFrame(leftTwoThirds, 0)
+  rightWin:setFrame(rightOneThird, 0)
 elseif isWeighted then
   leftWin:setFrame(leftHalf, 0)
   rightWin:setFrame(rightHalf, 0)
