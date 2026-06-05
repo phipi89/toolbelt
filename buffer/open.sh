@@ -4,10 +4,16 @@ set -eu
 TOOLBELT="${TOOLBELT:-$HOME/toolbelt}"
 BUFFER_DIR="$TOOLBELT/config/buffer"
 BUFFER_FILE="$BUFFER_DIR/buffer.txt"
-PROJECT_FILE="$BUFFER_DIR/buffer.sublime-project"
 HISTORY_DIR="$HOME/.buffer_history"
 MAX_AGE_SECONDS=300
 MAX_HISTORY_ITEMS=10
+clear_now=false
+
+case "${1:-}" in
+  --clear|-c)
+    clear_now=true
+    ;;
+esac
 
 mkdir -p "$BUFFER_DIR" "$HISTORY_DIR"
 touch "$BUFFER_FILE"
@@ -16,7 +22,7 @@ now=$(date +%s)
 modified=$(stat -f %m "$BUFFER_FILE")
 age=$((now - modified))
 
-if [ "$age" -gt "$MAX_AGE_SECONDS" ] && [ -s "$BUFFER_FILE" ]; then
+if { [ "$clear_now" = true ] || [ "$age" -gt "$MAX_AGE_SECONDS" ]; } && [ -s "$BUFFER_FILE" ]; then
   cp "$BUFFER_FILE" "$HISTORY_DIR/$(date +%Y%m%d-%H%M%S).txt"
   : > "$BUFFER_FILE"
 
@@ -27,6 +33,6 @@ if [ "$age" -gt "$MAX_AGE_SECONDS" ] && [ -s "$BUFFER_FILE" ]; then
   done
 fi
 
-/opt/homebrew/bin/subl --launch-or-new-window --project "$PROJECT_FILE" "$BUFFER_FILE"
+open -a CotEditor "$BUFFER_FILE"
 sleep 0.3
 "$TOOLBELT/display/move/center.sh" --size 40
