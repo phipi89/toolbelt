@@ -1,0 +1,11 @@
+[project]
+name = "displayctl"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+displayctl = "displayctl.cli:main"
+
+[tool.uv]
+package = true

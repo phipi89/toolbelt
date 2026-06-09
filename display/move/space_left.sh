@@ -2,4 +2,4 @@
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-exec hs -q "$HOME/toolbelt/display/lua/cli.lua" -- move space-left "$@"
+yabai -m window --space prev && exec yabai -m space --focus prev
