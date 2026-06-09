@@ -475,7 +475,45 @@ function move.space(opts)
   local spacesApi = hs.spaces
   local win = windows.focused()
   local namespace = direction == 'left' and 'space_left' or 'space_right'
+  local targetSpace = nil
   local function log(msg) core.log(namespace, msg) end
+
+  local function inspectWindowSpaces(label)
+    local ok, value = pcall(function()
+      return spacesApi.windowSpaces(win)
+    end)
+    if ok then
+      log(label .. ' windowSpaces=' .. hs.inspect(value))
+      return value
+    end
+    log(label .. ' windowSpaces ERROR=' .. tostring(value))
+    return nil
+  end
+
+  local function tryMove(label, target, force)
+    local ok, value = pcall(function()
+      if force == nil then
+        return spacesApi.moveWindowToSpace(target, targetSpace)
+      end
+      return spacesApi.moveWindowToSpace(target, targetSpace, force)
+    end)
+    if ok then
+      log(label .. ' result=' .. tostring(value))
+      return value
+    end
+    log(label .. ' ERROR=' .. tostring(value))
+    return false
+  end
+
+  local function waitUntilMoved(label)
+    local winSpaces = nil
+    for _ = 1, 10 do
+      hs.timer.usleep(100000)
+      winSpaces = inspectWindowSpaces(label)
+      if core.contains(winSpaces, targetSpace) then return true end
+    end
+    return false
+  end
 
   if not spacesApi or not win or not win:isStandard() then
     log('missing spaces API or focused standard window')
@@ -495,9 +533,12 @@ function move.space(opts)
     return
   end
 
-  local currentSpace = spacesApi.focusedSpace()
+  local activeSpaces = spacesApi.activeSpaces()
+  local currentSpace = (activeSpaces and activeSpaces[screen:getUUID()]) or spacesApi.focusedSpace()
   local targetIndex = nil
   log('window id=' .. tostring(win:id()) .. ' title=' .. tostring(win:title()))
+  log('window application=' .. tostring(win:application() and win:application():name() or nil))
+  log('window isStandard=' .. tostring(win:isStandard()) .. ' isVisible=' .. tostring(win:isVisible()))
   log('screen=' .. tostring(screen:getUUID()) .. ' currentSpace=' .. tostring(currentSpace))
   log('screenSpaces=' .. hs.inspect(screenSpaces))
 
@@ -513,33 +554,46 @@ function move.space(opts)
     return
   end
 
-  local targetSpace = screenSpaces[targetIndex]
-  local moved = spacesApi.moveWindowToSpace(win, targetSpace)
-  log('move attempt result=' .. tostring(moved) .. ' targetSpace=' .. tostring(targetSpace))
+  targetSpace = screenSpaces[targetIndex]
+  log('targetIndex=' .. tostring(targetIndex) .. ' targetSpace=' .. tostring(targetSpace))
+  inspectWindowSpaces('before move')
+
+  local moved = false
+  if tryMove('move object attempt', win) then
+    moved = waitUntilMoved('after object move')
+  end
+  if not moved and tryMove('forced object move attempt', win, true) then
+    moved = waitUntilMoved('after forced object move')
+  end
+  if not moved and tryMove('move id attempt', win:id()) then
+    moved = waitUntilMoved('after id move')
+  end
+  if not moved and tryMove('forced id move attempt', win:id(), true) then
+    moved = waitUntilMoved('after forced id move')
+  end
+
+  inspectWindowSpaces('after all move attempts')
+
   if not moved then
-    moved = spacesApi.moveWindowToSpace(win, targetSpace, true)
-    log('forced move attempt result=' .. tostring(moved))
-  end
-
-  local winSpaces = nil
-  for _ = 1, 20 do
-    hs.timer.usleep(100000)
-    winSpaces = spacesApi.windowSpaces(win)
-    if core.contains(winSpaces, targetSpace) then break end
-  end
-  log('windowSpaces after move=' .. hs.inspect(winSpaces))
-
-  if not core.contains(winSpaces, targetSpace) then
-    log('window is not on target space after move; aborting gotoSpace')
+    log('window move failed; aborting space switch')
     return
   end
 
-  hs.timer.usleep(150000)
-  local switched, switchErr = spacesApi.gotoSpace(targetSpace)
-  log('gotoSpace result=' .. tostring(switched) .. ' err=' .. tostring(switchErr))
-  hs.timer.usleep(150000)
-  win:focus()
-  log('refocused window')
+  hs.timer.usleep(100000)
+  local keyCode = direction == 'left' and 123 or 124
+  local script = string.format(
+    [[tell application "System Events" to key code %d using control down]],
+    keyCode
+  )
+  local _, ok, _, rc = hs.osascript.applescript(script)
+  log('sent System Events ctrl+' .. tostring(direction) .. ' ok=' .. tostring(ok) .. ' rc=' .. tostring(rc))
+
+  hs.timer.doAfter(0.35, function()
+    inspectWindowSpaces('after switch')
+    win:raise()
+    win:focus()
+    log('refocused window')
+  end)
 end
 
 function move.run(action, args)
