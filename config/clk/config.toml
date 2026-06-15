@@ -1,0 +1,5 @@
+full_week_hours = 42
+workload = 0.8
+holiday_allowance = 25
+work_day_threshold_hours = 3
+bar_unit_minutes = 15
