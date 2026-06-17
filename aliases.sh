@@ -36,7 +36,7 @@ source "$TOOLBELT/pytemp/pytemp.sh"
 # |___/\___|\__,_|_|  \___|_| |_|
 #
 
-search() { (cd "$TOOLBELT/search" || return 1; ../display/move/center.sh; clear; uv run search;) }
+search() { (cd "$TOOLBELT/search" || return 1; clear; uv run search "$@";) }
 
 
 
@@ -96,4 +96,4 @@ source $TOOLBELT/misc/eject-all.sh
 
 calc() { (cd "$TOOLBELT/calc" || return 1; uv run calc;) }
 
-buf() { "$TOOLBELT/buffer/open.sh"; }
+buf() { "$TOOLBELT/buffer/open.sh" "$@"; }
