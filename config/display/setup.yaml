@@ -38,6 +38,9 @@ apps:
   VSCodium:
     action: select
 
+  "Visual Studio Code":
+    action: select
+
   Overleaf:
     action: select
 

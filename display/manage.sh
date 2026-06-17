@@ -11,6 +11,8 @@ export APP_NAME
 ACTION=$(yq e '.apps[strenv(APP_NAME)].action // .default_action' "$CONFIG_PATH")
 SPAWN_SCRIPT=$(yq e '.apps[strenv(APP_NAME)].spawn_script // ""' "$CONFIG_PATH")
 
-echo "$ACTION"
-echo "$SPAWN_SCRIPT"
-"$HOME/toolbelt/display/$ACTION.sh" "$APP_NAME" "$SPAWN_SCRIPT"
+if [[ "$ACTION" == "spawn_new" ]]; then
+  exec "$HOME/toolbelt/display/$ACTION.sh" "$APP_NAME" "$SPAWN_SCRIPT"
+fi
+
+exec "$HOME/toolbelt/display/$ACTION.sh" "$APP_NAME"

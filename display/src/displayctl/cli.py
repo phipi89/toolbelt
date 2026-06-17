@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from . import move, spawn
+from . import goto, move, select, spawn
 
 
 def main() -> None:
@@ -31,6 +31,12 @@ def main() -> None:
     spawn_parser.add_argument("app_name")
     spawn_parser.add_argument("spawn_script", nargs="?", default="")
 
+    goto_parser = subparsers.add_parser("goto")
+    goto_parser.add_argument("app_name")
+
+    select_parser = subparsers.add_parser("select")
+    select_parser.add_argument("app_name")
+
     args = parser.parse_args()
 
     if args.command == "left":
@@ -53,6 +59,10 @@ def main() -> None:
         move.split(frontmost_right=args.frontmost_right, frame=args.frame)
     elif args.command == "spawn-new":
         spawn.run(args.app_name, args.spawn_script)
+    elif args.command == "goto":
+        goto.run(args.app_name)
+    elif args.command == "select":
+        select.run(args.app_name)
     else:
         parser.error(f"unknown command: {args.command}")
 

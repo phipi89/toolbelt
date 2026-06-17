@@ -29,6 +29,10 @@ def query_display() -> dict[str, Any]:
     return json.loads(yabai("query", "--displays", "--display"))
 
 
+def query_spaces() -> list[dict[str, Any]]:
+    return json.loads(yabai("query", "--spaces"))
+
+
 def eligible_window(win: dict[str, Any]) -> bool:
     return bool(
         win.get("is-visible")
@@ -48,6 +52,10 @@ def grid(window_id: int, spec: str) -> None:
 
 def focus(window_id: int) -> None:
     subprocess.run(["yabai", "-m", "window", str(window_id), "--focus"], check=True)
+
+
+def focus_space(space_id: int) -> None:
+    subprocess.run(["yabai", "-m", "space", "--focus", str(space_id)], check=True)
 
 
 def move_display(window_id: int, display_id: int) -> None:

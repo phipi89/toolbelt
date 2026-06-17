@@ -119,7 +119,7 @@ def main():
         if completed_process.returncode:
             print(f"failed to open {app_name}")
             time.sleep(5)
-            subprocess.run(["open", target.as_posix()])
+            subprocess.run(["open", path.as_posix()])
 
 
 if __name__ == "__main__":
