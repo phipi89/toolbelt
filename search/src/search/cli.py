@@ -665,16 +665,37 @@ def _open_in_finder(path):
         subprocess.run(["open", "-R", path], check=False)
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Interactive recency-biased file finder"
-    )
-    parser.add_argument(
-        "--refresh",
-        action="store_true",
-        help="Refresh the file index and exit without launching the interactive prompt",
-    )
-    args = parser.parse_args()
+def _cd_target(path):
+    path = os.path.expanduser(path)
+    if os.path.isdir(path):
+        return os.path.abspath(path)
+    return os.path.abspath(os.path.dirname(path))
+
+
+def _resize_window():
+    script = Path(__file__).resolve().parents[3] / "display" / "move" / "center.sh"
+    if script.exists():
+        subprocess.run([str(script)], check=False)
+
+
+def _run_checked(cmd):
+    print("$ " + " ".join(cmd), flush=True)
+    result = subprocess.run(cmd, check=False)
+    if result.returncode != 0:
+        raise SystemExit(result.returncode)
+
+
+def _rebuild_spotlight_index(target):
+    target = os.path.expanduser(target)
+    _run_checked(["sudo", "mdutil", "-i", "off", target])
+    _run_checked(["sudo", "mdutil", "-E", target])
+    _run_checked(["sudo", "mdutil", "-i", "on", target])
+    _run_checked(["mdutil", "-s", target])
+
+
+def _select_path(args, show_title=True):
+    if args.resize_window:
+        _resize_window()
 
     config = _config()
     entries, meta = _load_entries(
@@ -686,9 +707,10 @@ def main():
     )
     if args.refresh:
         print(_index_summary(entries, meta))
-        return
+        return None
 
-    print_title(entries, meta)
+    if show_title:
+        print_title(entries, meta)
 
     selection, found = interactive(
         entries,
@@ -701,8 +723,65 @@ def main():
     )
     if not found:
         raise SystemExit(f"Not found: {selection}")
+    return selection
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Interactive recency-biased file finder"
+    )
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Refresh the file index and exit without launching the interactive prompt",
+    )
+    parser.add_argument(
+        "--rebuild",
+        action="store_true",
+        help="Rebuild the Spotlight index and exit",
+    )
+    parser.add_argument(
+        "--rebuild-target",
+        default="/System/Volumes/Data",
+        help="Path to rebuild with mdutil when using --rebuild",
+    )
+    parser.add_argument(
+        "--resize_window",
+        "--resize-window",
+        action="store_true",
+        help="Resize and center the search window before starting",
+    )
+    args = parser.parse_args()
+
+    if args.rebuild:
+        _rebuild_spotlight_index(args.rebuild_target)
+        return
+
+    selection = _select_path(args)
+    if selection is None:
+        return
     _open_in_finder(selection)
     print(selection)
+
+
+def goto_main():
+    parser = argparse.ArgumentParser(description="Interactive directory picker for shell cd")
+    parser.add_argument("--refresh", action="store_true", help="Refresh the file index and exit")
+    parser.add_argument(
+        "--resize_window",
+        "--resize-window",
+        action="store_true",
+        help="Resize and center the search window before starting",
+    )
+    parser.add_argument("--result-file", required=True, help="File to write the selected cd target to")
+    args = parser.parse_args()
+
+    selection = _select_path(args, show_title=False)
+    if selection is None:
+        return
+    target = _cd_target(selection)
+    with open(args.result_file, "w", encoding="utf-8") as f:
+        f.write(target)
 
 
 if __name__ == "__main__":

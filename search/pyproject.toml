@@ -8,6 +8,7 @@ dependencies = [
 
 [project.scripts]
 search = "search.cli:main"
+goto-picker = "search.cli:goto_main"
 
 [tool.uv]
 package = true
