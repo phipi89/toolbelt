@@ -44,4 +44,8 @@ apps:
   Overleaf:
     action: select
 
+  Zotero:
+    action: move_here
+
+
 default_action: goto

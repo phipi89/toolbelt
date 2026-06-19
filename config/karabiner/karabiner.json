@@ -107,6 +107,22 @@
                                 },
                                 "to": [{ "shell_command": "$HOME/toolbelt/display/move/cycle.sh --third" }],
                                 "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "left_arrow",
+                                    "modifiers": { "mandatory": ["command", "control"] }
+                                },
+                                "to": [{ "shell_command": "$HOME/toolbelt/display/move/space_left.sh" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "right_arrow",
+                                    "modifiers": { "mandatory": ["command", "control"] }
+                                },
+                                "to": [{ "shell_command": "$HOME/toolbelt/display/move/space_right.sh" }],
+                                "type": "basic"
                             }
                         ]
                     },
