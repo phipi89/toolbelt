@@ -37,6 +37,19 @@ source "$TOOLBELT/pytemp/pytemp.sh"
 #
 
 search() { (cd "$TOOLBELT/search" || return 1; clear; uv run search "$@";) }
+goto() {
+  local tmp target exit_status
+  tmp="$(mktemp)" || return 1
+  "$TOOLBELT/search/goto.sh" --result-file "$tmp"
+  exit_status=$?
+  if [[ $exit_status -ne 0 ]]; then
+    rm -f "$tmp"
+    return $exit_status
+  fi
+  target="$(<"$tmp")"
+  rm -f "$tmp"
+  [[ -n "$target" ]] && cd "$target"
+}
 
 
 

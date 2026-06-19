@@ -4,9 +4,18 @@ import plistlib
 import subprocess
 from pathlib import Path
 
+from . import timing
+
 
 def _run(*args: str) -> str:
-    return subprocess.run(args, check=False, text=True, capture_output=True).stdout.strip()
+    return timing.time_call(
+        " ".join(args[:2]),
+        subprocess.run,
+        args,
+        check=False,
+        text=True,
+        capture_output=True,
+    ).stdout.strip()
 
 
 def _add_name(names: set[str], value: str | None) -> None:
@@ -30,10 +39,11 @@ def _candidate_app_paths(name: str) -> list[Path]:
     for root in (Path("/Applications"), Path("/System/Applications"), Path.home() / "Applications"):
         add(root / f"{name}.app")
 
-    for line in _run("mdfind", "-name", name).splitlines():
-        path = Path(line)
-        if path.suffix == ".app":
-            add(path)
+    if not paths:
+        for line in _run("mdfind", "-name", name).splitlines():
+            path = Path(line)
+            if path.suffix == ".app":
+                add(path)
     return paths
 
 
@@ -57,9 +67,10 @@ def _mdls_display_name(app_path: Path) -> str | None:
 
 
 def candidate_app_names(name: str) -> set[str]:
-    names = {name}
-    for app_path in _candidate_app_paths(name):
-        _add_name(names, app_path.stem)
-        _add_name(names, _mdls_display_name(app_path))
-        names.update(_info_plist_names(app_path))
-    return names
+    with timing.timed("resolve app names"):
+        names = {name}
+        for app_path in _candidate_app_paths(name):
+            _add_name(names, app_path.stem)
+            _add_name(names, _mdls_display_name(app_path))
+            names.update(_info_plist_names(app_path))
+        return names

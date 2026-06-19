@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from . import goto, move, select, spawn
+from . import goto, move, move_here, select, spawn
 
 
 def main() -> None:
@@ -37,6 +37,9 @@ def main() -> None:
     select_parser = subparsers.add_parser("select")
     select_parser.add_argument("app_name")
 
+    move_here_parser = subparsers.add_parser("move-here")
+    move_here_parser.add_argument("app_name")
+
     args = parser.parse_args()
 
     if args.command == "left":
@@ -63,6 +66,8 @@ def main() -> None:
         goto.run(args.app_name)
     elif args.command == "select":
         select.run(args.app_name)
+    elif args.command == "move-here":
+        move_here.run(args.app_name)
     else:
         parser.error(f"unknown command: {args.command}")
 

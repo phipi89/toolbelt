@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AllowClipboardAccess</key>
+	<true/>
 	<key>AlternateMouseScroll</key>
 	<true/>
 	<key>Command</key>
@@ -116,6 +118,14 @@
 	<key>NeverWarnAboutShortLivedSessions_4AE53D0A-396B-460A-A99A-4B784C8533B6</key>
 	<true/>
 	<key>NeverWarnAboutShortLivedSessions_4AE53D0A-396B-460A-A99A-4B784C8533B6_selection</key>
+	<integer>0</integer>
+	<key>NeverWarnAboutShortLivedSessions_8044E7A6-2613-4CD3-B494-F6270C211BE5</key>
+	<true/>
+	<key>NeverWarnAboutShortLivedSessions_8044E7A6-2613-4CD3-B494-F6270C211BE5_selection</key>
+	<integer>0</integer>
+	<key>NeverWarnAboutShortLivedSessions_A442B7F0-9C3E-45D7-9E3A-A593FEF1EB9B</key>
+	<true/>
+	<key>NeverWarnAboutShortLivedSessions_A442B7F0-9C3E-45D7-9E3A-A593FEF1EB9B_selection</key>
 	<integer>0</integer>
 	<key>New Bookmarks</key>
 	<array>
@@ -5834,6 +5844,17 @@
 					<integer>11</integer>
 					<key>Text</key>
 					<string>0x1b 0x7f</string>
+				</dict>
+				<key>0xd-0x100000-0x24</key>
+				<dict>
+					<key>Action</key>
+					<integer>12</integer>
+					<key>Label</key>
+					<string></string>
+					<key>Text</key>
+					<string>#RevealFile</string>
+					<key>Version</key>
+					<integer>1</integer>
 				</dict>
 				<key>0xf700-0x220000</key>
 				<dict>

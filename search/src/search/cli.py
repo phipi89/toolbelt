@@ -552,6 +552,7 @@ def interactive(entries, refresh_interval, load_entries):
     completer = RecencyFuzzyCompleter(entries, default_base=home)
     kb = KeyBindings()
     stop_refresh = threading.Event()
+    reveal_action = [False]
 
     style = Style.from_dict(
         {
@@ -615,11 +616,16 @@ def interactive(entries, refresh_interval, load_entries):
     def _(event):
         buffer = event.app.current_buffer
         query = buffer.text.strip()
+        reveal = query.endswith("#RevealFile")
+        if reveal:
+            buffer.text = query[: -len("#RevealFile")].strip()
         if query.startswith('"'):
             state = buffer.complete_state
             if state and state.current_completion:
                 completer.cancel_search()
                 buffer.apply_completion(state.current_completion)
+                if reveal:
+                    reveal_action[0] = True
                 event.app.exit(result=buffer.text)
                 return
             if _quoted_find_pattern(query):
@@ -627,15 +633,29 @@ def interactive(entries, refresh_interval, load_entries):
                 return
         if accept_best(buffer):
             completer.cancel_search()
+        if reveal:
+            reveal_action[0] = True
         event.app.exit(result=buffer.text)
+
+    def _check_reveal(buffer):
+        text = buffer.text.strip()
+        if text.endswith("#RevealFile"):
+            buffer.text = text[: -len("#RevealFile")].strip()
+            if accept_best(buffer):
+                completer.cancel_search()
+            reveal_action[0] = True
+            session.app.exit(result=buffer.text)
+
+    def _setup_reveal_hook():
+        session.app.current_buffer.on_text_changed += _check_reveal
 
     _start_refresh_thread(refresh_interval, load_entries, completer, stop_refresh)
 
     try:
-        result = session.prompt("> ")
+        result = session.prompt("> ", pre_run=_setup_reveal_hook)
     finally:
         stop_refresh.set()
-    return result, completer.has_path(result)
+    return result, completer.has_path(result), reveal_action[0]
 
 
 def _load_entries(
@@ -658,6 +678,11 @@ def _config():
 
 
 def _open_in_finder(path):
+    path = os.path.expanduser(path)
+    subprocess.run(["open", path], check=False)
+
+
+def _reveal_in_finder(path):
     path = os.path.expanduser(path)
     if os.path.isdir(path):
         subprocess.run(["open", path], check=False)
@@ -707,12 +732,12 @@ def _select_path(args, show_title=True):
     )
     if args.refresh:
         print(_index_summary(entries, meta))
-        return None
+        return None, False
 
     if show_title:
         print_title(entries, meta)
 
-    selection, found = interactive(
+    selection, found, reveal = interactive(
         entries,
         refresh_interval=config["refresh_interval"],
         load_entries=lambda: _load_entries(
@@ -723,7 +748,7 @@ def _select_path(args, show_title=True):
     )
     if not found:
         raise SystemExit(f"Not found: {selection}")
-    return selection
+    return selection, reveal
 
 
 def main():
@@ -757,10 +782,13 @@ def main():
         _rebuild_spotlight_index(args.rebuild_target)
         return
 
-    selection = _select_path(args)
+    selection, reveal = _select_path(args)
     if selection is None:
         return
-    _open_in_finder(selection)
+    if reveal:
+        _reveal_in_finder(selection)
+    else:
+        _open_in_finder(selection)
     print(selection)
 
 
@@ -776,7 +804,7 @@ def goto_main():
     parser.add_argument("--result-file", required=True, help="File to write the selected cd target to")
     args = parser.parse_args()
 
-    selection = _select_path(args, show_title=False)
+    selection, _reveal = _select_path(args, show_title=False)
     if selection is None:
         return
     target = _cd_target(selection)
