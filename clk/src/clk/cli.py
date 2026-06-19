@@ -1,12 +1,13 @@
 """
 A vibe coded cli tool to keep track of my working hours.
-Be sure your system backs up `~/.clk_log.json`.
+Be sure your system backs up `~/.toolbelt-local/clk/clk_log.json`.
 """
 
 import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from datetime import date, datetime, timedelta
@@ -19,9 +20,6 @@ try:
 except Exception:
     ZoneInfo = None
 
-PATH = os.path.expanduser("~/.clk_log.json")
-LOCAL_CONFIG_PATH = Path(__file__).resolve().parents[3] / "config" / "clk" / "config.toml"
-USER_CONFIG_PATH = Path(os.path.expanduser("~/.clk_config.toml"))
 UNDO_MAX = 5
 DEFAULT_CONFIG = {
     "full_week_hours": 42.0,
@@ -46,6 +44,17 @@ def tzlocal():
 TZ = tzlocal()
 
 
+TOOLBELT_LOCAL = Path(
+    os.environ.get("TOOLBELT_LOCAL", Path.home() / ".toolbelt-local")
+)
+CLK_LOCAL_DIR = TOOLBELT_LOCAL / "clk"
+OLD_PATH = Path(os.path.expanduser("~/.clk_log.json"))
+PATH = str(CLK_LOCAL_DIR / "clk_log.json")
+LOCAL_CONFIG_PATH = Path(__file__).resolve().parents[3] / "config" / "clk" / "config.toml"
+OLD_USER_CONFIG_PATH = Path(os.path.expanduser("~/.clk_config.toml"))
+USER_CONFIG_PATH = CLK_LOCAL_DIR / "config.toml"
+
+
 def _read_toml(path):
     if not path.exists():
         return {}
@@ -53,7 +62,15 @@ def _read_toml(path):
         return tomllib.load(f)
 
 
+def _copy_if_missing(old_path, new_path):
+    if new_path.exists() or not old_path.exists():
+        return
+    new_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(old_path, new_path)
+
+
 def load_config():
+    _copy_if_missing(OLD_USER_CONFIG_PATH, USER_CONFIG_PATH)
     config = dict(DEFAULT_CONFIG)
     config.update(_read_toml(LOCAL_CONFIG_PATH))
     config.update(_read_toml(USER_CONFIG_PATH))
@@ -94,6 +111,7 @@ def s_to_dt(s):
 
 
 def load():
+    _copy_if_missing(OLD_PATH, Path(PATH))
     if not os.path.exists(PATH):
         return {"sessions": [], "_undo": []}
     with open(PATH, "r", encoding="utf-8") as f:
@@ -104,6 +122,7 @@ def load():
 
 
 def save(db):
+    Path(PATH).parent.mkdir(parents=True, exist_ok=True)
     tmp = PATH + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(db, f, indent=2, ensure_ascii=False)
