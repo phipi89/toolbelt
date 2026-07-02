@@ -6,7 +6,7 @@ apps:
 
   Google Chrome:
     action: spawn_new
-    # spawn_script: osascript -e 'tell application "Google Chrome" to make new window'
+    spawn_script: osascript -e 'tell application "Google Chrome" to make new window'
 
   iTerm2:
     action: spawn_new
@@ -40,6 +40,7 @@ apps:
 
   "Visual Studio Code":
     action: select
+    spawn_script: /opt/homebrew/bin/code -n
 
   Overleaf:
     action: select

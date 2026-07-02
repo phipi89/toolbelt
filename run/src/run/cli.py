@@ -123,11 +123,16 @@ def interactive(items, windows=None):
         accept_best_completion(b)
         b.validate_and_handle()
 
+    @kb.add("escape", "enter")
+    def _(event):
+        b = event.app.current_buffer
+        accept_best_completion(b)
+        event.app.exit(result=("NEW_WINDOW", b.text))
+
     @kb.add("escape")
     def _(event):
         hide_windows(event)
 
-    @kb.add("escape", "enter")  # Cmd+Enter in many macOS terminals
     @kb.add("1")
     @kb.add("2")
     @kb.add("3")
@@ -204,7 +209,8 @@ def main():
         subprocess.run(["open", target.as_posix()])
     else:
         app_name = path.stem
-        window_manager = pathlib.Path.home() / "toolbelt" / "display" / "manage.sh"
+        script_name = "new_window.sh" if action == "NEW_WINDOW" else "manage.sh"
+        window_manager = pathlib.Path.home() / "toolbelt" / "display" / script_name
         completed_process = subprocess.run([window_manager.as_posix(), app_name])
         if completed_process.returncode:
             print(f"failed to open {app_name}")

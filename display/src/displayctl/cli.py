@@ -28,6 +28,7 @@ def main() -> None:
     split_parser.add_argument("--frame", "--framed", action="store_true")
 
     spawn_parser = subparsers.add_parser("spawn-new")
+    spawn_parser.add_argument("--force", action="store_true")
     spawn_parser.add_argument("app_name")
     spawn_parser.add_argument("spawn_script", nargs="?", default="")
 
@@ -61,7 +62,7 @@ def main() -> None:
     elif args.command == "split":
         move.split(frontmost_right=args.frontmost_right, frame=args.frame)
     elif args.command == "spawn-new":
-        spawn.run(args.app_name, args.spawn_script)
+        spawn.run(args.app_name, args.spawn_script, force=args.force)
     elif args.command == "goto":
         goto.run(args.app_name)
     elif args.command == "select":
