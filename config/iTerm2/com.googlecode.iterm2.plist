@@ -3243,6 +3243,17 @@
 					<key>Text</key>
 					<string>0x1b 0x7f</string>
 				</dict>
+				<key>0xd-0x100000-0x24</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Label</key>
+					<string></string>
+					<key>Text</key>
+					<string>0x1b 0x0d</string>
+					<key>Version</key>
+					<integer>1</integer>
+				</dict>
 				<key>0xf700-0x220000</key>
 				<dict>
 					<key>Action</key>
@@ -3493,7 +3504,7 @@
 			<key>Mouse Reporting</key>
 			<true/>
 			<key>Name</key>
-			<string>app launcher</string>
+			<string>run</string>
 			<key>Non Ascii Font</key>
 			<string>Monaco 12</string>
 			<key>Non-ASCII Anti Aliased</key>
@@ -5540,9 +5551,9 @@
 			<key>Close Sessions On End</key>
 			<integer>1</integer>
 			<key>Columns</key>
-			<integer>70</integer>
+			<integer>150</integer>
 			<key>Command</key>
-			<string>zsh -lic "$HOME/toolbelt/search/run.sh"</string>
+			<string>zsh -lic "$HOME/toolbelt/layout/move/center.sh; $HOME/toolbelt/search/run.sh"</string>
 			<key>Cursor Boost</key>
 			<real>0.0</real>
 			<key>Cursor Color</key>
@@ -5848,11 +5859,11 @@
 				<key>0xd-0x100000-0x24</key>
 				<dict>
 					<key>Action</key>
-					<integer>12</integer>
+					<integer>11</integer>
 					<key>Label</key>
 					<string></string>
 					<key>Text</key>
-					<string>#RevealFile</string>
+					<string>0x1b 0x0d</string>
 					<key>Version</key>
 					<integer>1</integer>
 				</dict>
@@ -6126,7 +6137,7 @@
 			<key>Right Option Key Sends</key>
 			<integer>0</integer>
 			<key>Rows</key>
-			<integer>20</integer>
+			<integer>50</integer>
 			<key>Screen</key>
 			<integer>-2</integer>
 			<key>Scrollback Lines</key>

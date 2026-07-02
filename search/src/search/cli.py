@@ -612,13 +612,9 @@ def interactive(entries, refresh_interval, load_entries):
         if accept_best(buffer):
             buffer.start_completion(select_first=False)
 
-    @kb.add("enter")
-    def _(event):
+    def submit_buffer(event, reveal=False):
         buffer = event.app.current_buffer
         query = buffer.text.strip()
-        reveal = query.endswith("#RevealFile")
-        if reveal:
-            buffer.text = query[: -len("#RevealFile")].strip()
         if query.startswith('"'):
             state = buffer.complete_state
             if state and state.current_completion:
@@ -637,22 +633,18 @@ def interactive(entries, refresh_interval, load_entries):
             reveal_action[0] = True
         event.app.exit(result=buffer.text)
 
-    def _check_reveal(buffer):
-        text = buffer.text.strip()
-        if text.endswith("#RevealFile"):
-            buffer.text = text[: -len("#RevealFile")].strip()
-            if accept_best(buffer):
-                completer.cancel_search()
-            reveal_action[0] = True
-            session.app.exit(result=buffer.text)
+    @kb.add("enter")
+    def _(event):
+        submit_buffer(event)
 
-    def _setup_reveal_hook():
-        session.app.current_buffer.on_text_changed += _check_reveal
+    @kb.add("escape", "enter")
+    def _(event):
+        submit_buffer(event, reveal=True)
 
     _start_refresh_thread(refresh_interval, load_entries, completer, stop_refresh)
 
     try:
-        result = session.prompt("> ", pre_run=_setup_reveal_hook)
+        result = session.prompt("> ")
     finally:
         stop_refresh.set()
     return result, completer.has_path(result), reveal_action[0]
@@ -698,9 +690,7 @@ def _cd_target(path):
 
 
 def _resize_window():
-    script = Path(__file__).resolve().parents[3] / "display" / "move" / "center.sh"
-    if script.exists():
-        subprocess.run([str(script)], check=False)
+    return
 
 
 def _run_checked(cmd):
