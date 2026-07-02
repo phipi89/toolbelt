@@ -109,4 +109,6 @@ source $TOOLBELT/misc/eject-all.sh
 
 calc() { (cd "$TOOLBELT/calc" || return 1; uv run calc;) }
 
+timer() { clear && "$TOOLBELT/misc/timer.py"; }
+
 buf() { "$TOOLBELT/buffer/open.sh" "$@"; }
