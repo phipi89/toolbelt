@@ -23,6 +23,7 @@ wheels/
 
 # Other tools
 .obsidian/
+.opencode/
 
 config/karabiner/assets/
 config/karabiner/automatic_backups/
