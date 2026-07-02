@@ -21,6 +21,7 @@ except Exception:
     ZoneInfo = None
 
 UNDO_MAX = 5
+PAD_REASONS = ("sickness", "child-sickness")
 DEFAULT_CONFIG = {
     "full_week_hours": 42.0,
     "workload": 0.8,
@@ -195,6 +196,7 @@ def parsing_overview():
         "  break:     clk break, clk break <timepoint>, clk break <start> <+/-duration>, clk break <start..end>\n"
         "  session:   clk session [DD.MM.YY] <start..end>\n"
         "             clk session [DD.MM.YY] <start..(break_start..break_end)..end>\n"
+        "  pad:       clk pad [DD.MM.YY] --pad sickness|child-sickness\n"
         "  holiday:   clk holiday YYYY-MM-DD or YYYY-MM-DD..YYYY-MM-DD"
     )
 
@@ -237,6 +239,13 @@ def parse_date_token(token):
         return date(y, mo, d)
     except ValueError:
         raise ParseError(f"Invalid date: {token!r}")
+
+
+def try_parse_date_token(token):
+    try:
+        return parse_date_token(token)
+    except ParseError:
+        return None
 
 
 def parse_iso_date(token):
@@ -316,6 +325,14 @@ def split_interval_expr(expr):
     return split_top_level(expr, "-")
 
 
+def normalize_session_spec(spec):
+    return re.sub(
+        r"(\d{1,2}(?::|h)?\d{2})\((.*?)\)(\d{1,2}(?::|h)?\d{2})$",
+        r"\1..(\2)..\3",
+        spec.strip(),
+    )
+
+
 def parse_interval(expr, ref, fixed_date=None):
     parts = split_interval_expr(expr)
     if len(parts) != 2 or not parts[0] or not parts[1]:
@@ -328,6 +345,7 @@ def parse_interval(expr, ref, fixed_date=None):
 
 
 def parse_session_spec(spec, ref, fixed_date):
+    spec = normalize_session_spec(spec)
     parts = split_interval_expr(spec)
     if len(parts) < 2:
         raise ParseError("Session range is missing '-'.")
@@ -368,8 +386,29 @@ def is_holiday_session(sess):
     return session_kind(sess) == "holiday" and bool(sess.get("date"))
 
 
+def is_pad_session(sess):
+    return session_kind(sess) == "pad" and bool(sess.get("date"))
+
+
 def holiday_dates(db):
     return {sess["date"] for sess in db["sessions"] if is_holiday_session(sess)}
+
+
+def pad_entries_for_day(db, d):
+    iso = d.isoformat()
+    return [
+        sess for sess in db["sessions"] if is_pad_session(sess) and sess["date"] == iso
+    ]
+
+
+def pad_minutes_for_day(db, d):
+    return sum(int(sess.get("minutes", 0)) for sess in pad_entries_for_day(db, d))
+
+
+def pad_reasons_for_day(db, d):
+    return sorted(
+        {sess.get("reason", "") for sess in pad_entries_for_day(db, d) if sess.get("reason")}
+    )
 
 
 def break_intervals(sess, up_to):
@@ -406,6 +445,57 @@ def worked_in_range(sess, r0, r1):
     return max(total, timedelta(0))
 
 
+def work_total_for_day(db, d):
+    n = now()
+    r0 = datetime.combine(d, datetime.min.time(), tzinfo=n.tzinfo)
+    r1 = r0 + timedelta(days=1)
+    total = timedelta(0)
+    for sess in db["sessions"]:
+        if is_work_session(sess):
+            total += worked_in_range(sess, r0, r1)
+    return total
+
+
+def credited_total_for_day(db, d):
+    return work_total_for_day(db, d) + timedelta(minutes=pad_minutes_for_day(db, d))
+
+
+def overlapping_work_session(db, start, end):
+    for sess in db["sessions"]:
+        if not is_work_session(sess):
+            continue
+        s0 = s_to_dt(sess["start"])
+        s1 = s_to_dt(sess["end"]) if sess.get("end") else now()
+        if clamp_interval(start, end, s0, s1):
+            return sess
+    return None
+
+
+def session_interval_text(sess):
+    s0 = s_to_dt(sess["start"])
+    if sess.get("end"):
+        s1 = s_to_dt(sess["end"])
+        return f"{s0.strftime('%Y-%m-%d %H:%M')} → {s1.strftime('%H:%M')}"
+    return f"{s0.strftime('%Y-%m-%d %H:%M')} → active"
+
+
+def add_pad_entry(db, d, reason, config):
+    target_minutes = int(round(work_day_hours(config) * 60))
+    credited_minutes = int(round(credited_total_for_day(db, d).total_seconds() / 60))
+    minutes = max(0, target_minutes - credited_minutes)
+    if minutes == 0:
+        return 0
+    db["sessions"].append(
+        {
+            "kind": "pad",
+            "date": d.isoformat(),
+            "minutes": minutes,
+            "reason": reason,
+        }
+    )
+    return minutes
+
+
 def daily_totals(db, days_back=7):
     n = now()
     start_day = n.date() - timedelta(days=days_back - 1)
@@ -416,6 +506,7 @@ def daily_totals(db, days_back=7):
         for sess in db["sessions"]:
             if is_work_session(sess):
                 totals[d] += worked_in_range(sess, r0, r1)
+        totals[d] += timedelta(minutes=pad_minutes_for_day(db, d))
     return totals
 
 
@@ -432,6 +523,7 @@ def daily_totals_between(db, start_day, end_day):
         for sess in db["sessions"]:
             if is_work_session(sess):
                 totals[d] += worked_in_range(sess, r0, r1)
+        totals[d] += timedelta(minutes=pad_minutes_for_day(db, d))
     return totals
 
 
@@ -442,7 +534,7 @@ def history_bounds(db):
     lo = None
     hi = None
     for sess in db["sessions"]:
-        if is_holiday_session(sess):
+        if is_holiday_session(sess) or is_pad_session(sess):
             s0 = s1 = parse_iso_date(sess["date"])
         elif is_work_session(sess):
             s0 = s_to_dt(sess["start"]).date()
@@ -637,6 +729,7 @@ def analysis_data(db, start_day, end_day, config):
                 "cum_expected": cum_expected,
                 "cum_delta": cum_worked - cum_expected,
                 "holiday": d.isoformat() in holidays,
+                "pad_reasons": pad_reasons_for_day(db, d),
             }
         )
 
@@ -668,6 +761,8 @@ def print_holiday_progress(db, start_day, end_day, allowance):
 def day_label(row):
     if row["holiday"]:
         return "holiday"
+    if row["pad_reasons"]:
+        return "pad " + ",".join(row["pad_reasons"])
     if row["expected"] > 0:
         return "work"
     if row["worked"] > 0:
@@ -762,6 +857,9 @@ def print_report(db):
     for d in days:
         label = d.strftime("%a %Y-%m-%d")
         suffix = " holiday" if d.isoformat() in holidays else ""
+        pad_reasons = pad_reasons_for_day(db, d)
+        if pad_reasons:
+            suffix += " pad " + ",".join(pad_reasons)
         print(f"  {label}: {fmt_td(totals[d])}{suffix}")
 
     weekly_target = weekly_target_hours(config)
@@ -960,25 +1058,48 @@ def cmd_break(args):
 
 def cmd_session(args):
     db = load()
+    config = load_config()
     parts = args.parts
     if len(parts) == 1:
-        day = now().date()
+        explicit_day = try_parse_date_token(parts[0])
+        if explicit_day:
+            if args.yesterday:
+                raise ParseError("Use either an explicit date or --yesterday, not both.")
+            if not args.pad:
+                raise ParseError("Date-only add requires --pad.")
+            db_before = json.loads(json.dumps(db))
+            pad_minutes = add_pad_entry(db, explicit_day, args.pad, config)
+            if not pad_minutes:
+                print(f"Pad skipped:   {explicit_day.isoformat()} already at full work day")
+                print(current_state_text(db))
+                return 0
+            push_undo(db_before, db)
+            save(db)
+            print(
+                f"Pad added:     {explicit_day.isoformat()} {fmt_td(timedelta(minutes=pad_minutes))} ({args.pad})"
+            )
+            print(current_state_text(db))
+            return 0
+        day = now().date() - timedelta(days=1) if args.yesterday else now().date()
         spec = parts[0]
     elif len(parts) == 2:
+        if args.yesterday:
+            raise ParseError("Use either an explicit date or --yesterday, not both.")
         day = parse_date_token(parts[0])
         spec = parts[1]
     else:
         raise ParseError("Usage: clk session [DD.MM.YY] <start..end>")
 
-    if current_session(db) and day == now().date():
+    s0, s1, brks = parse_session_spec(spec, now(), fixed_date=day)
+    overlap = overlapping_work_session(db, s0, s1)
+    if overlap:
         print(
-            "Already running. End the active session before adding a complete session for today.",
+            f"Session overlaps existing session: {session_interval_text(overlap)}",
             file=sys.stderr,
         )
         print(current_state_text(db))
         return 1
 
-    s0, s1, brks = parse_session_spec(spec, now(), fixed_date=day)
     db_before = json.loads(json.dumps(db))
     db["sessions"].append(
         {
@@ -988,11 +1109,39 @@ def cmd_session(args):
             "breaks": [{"start": dt_to_s(a), "end": dt_to_s(b)} for a, b in brks],
         }
     )
+    pad_minutes = add_pad_entry(db, day, args.pad, config) if args.pad else 0
     push_undo(db_before, db)
     save(db)
     print(f"Session added: {s0.strftime('%Y-%m-%d %H:%M')} → {s1.strftime('%H:%M')}")
     if brks:
         print(f"Breaks: {len(brks)}")
+    if args.pad:
+        if pad_minutes:
+            print(f"Pad added:     {fmt_td(timedelta(minutes=pad_minutes))} ({args.pad})")
+        else:
+            print(f"Pad skipped:   {day.isoformat()} already at full work day")
+    print(current_state_text(db))
+    return 0
+
+
+def cmd_pad(args):
+    db = load()
+    config = load_config()
+    if args.date and args.yesterday:
+        raise ParseError("Use either an explicit date or --yesterday, not both.")
+    day = parse_date_token(args.date) if args.date else now().date()
+    if args.yesterday:
+        day = now().date() - timedelta(days=1)
+
+    db_before = json.loads(json.dumps(db))
+    minutes = add_pad_entry(db, day, args.pad, config)
+    if not minutes:
+        print(f"Pad skipped: {day.isoformat()} already at full work day")
+        print(current_state_text(db))
+        return 0
+    push_undo(db_before, db)
+    save(db)
+    print(f"Pad added:   {day.isoformat()} {fmt_td(timedelta(minutes=minutes))} ({args.pad})")
     print(current_state_text(db))
     return 0
 
@@ -1105,13 +1254,40 @@ def main(argv=None):
     )
     pb.set_defaults(fn=cmd_break)
 
-    pss = sub.add_parser("session", help="add a complete session range")
+    pss = sub.add_parser(
+        "session", aliases=["add"], help="add a complete session range"
+    )
     pss.add_argument(
         "parts",
         nargs="+",
         help="session [DD.MM.YY] <start..end> or <start..(break..break)..end>",
     )
+    pss.add_argument(
+        "--yesterday",
+        action="store_true",
+        help="interpret clock times as yesterday instead of today",
+    )
+    pss.add_argument(
+        "--pad",
+        choices=PAD_REASONS,
+        help="pad the day to a full work day for the given reason",
+    )
     pss.set_defaults(fn=cmd_session)
+
+    pp = sub.add_parser("pad", help="pad a day to a full work day")
+    pp.add_argument("date", nargs="?", help="date: DD.MM.YY (defaults to today)")
+    pp.add_argument(
+        "--yesterday",
+        action="store_true",
+        help="pad yesterday instead of today",
+    )
+    pp.add_argument(
+        "--pad",
+        choices=PAD_REASONS,
+        required=True,
+        help="pad reason",
+    )
+    pp.set_defaults(fn=cmd_pad)
 
     ph = sub.add_parser("holiday", help="mark weekday holiday date(s)")
     ph.add_argument(
@@ -1128,7 +1304,7 @@ def main(argv=None):
 
     pa = sub.add_parser(
         "analyse",
-        aliases=["analyze"],
+        aliases=["analyze", "stats"],
         help="analyse work history",
     )
     pa.add_argument(

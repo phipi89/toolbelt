@@ -60,7 +60,8 @@ goto() {
 #  \___|_|_|\_\
 
 # wrap in () runs the command in a subshell
-clk() { (cd "$TOOLBELT/clk"; uv run clk "$@";) }
+_clk() { (cd "$TOOLBELT/clk"; uv run clk "$@";) }
+alias clk='noglob _clk'
 
 
 
