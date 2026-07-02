@@ -1,20 +1,20 @@
 # Toolbelt
 
-A collection of small productivity tools that make the terminal the default entry point to my computer.
+A collection of productivity tools that make the terminal the default entry point to my computer.
 
 ## Principles
 
-A single place for config, shareable across my devices. Keyboard-first workflow with a *super key* and a handful of small CLI tools to solve everyday.
-
-This is my personal setup; intentionally raw and hackable.
+* A single place for keyboard-based workflows CLI tools and my config.
+* Shareable across my devices; deliberately not hidden behind .dotfiles.
+* Hackable, with now aspiration for completeness or polish.
 
 ### Keyboard shortcuts
 
 Super key = <kbd>right cmd</kbd>.
 
-- <kbd>super</kbd>+<kbd>space</kbd>: open iTerm hotkey window
-- <kbd>super</kbd>+<kbd>letter</kbd>: run apps and tools
-- <kbd>super</kbd>+<kbd>,</kbd>/<kbd>.</kbd>/<kbd>l</kbd>: move/resize windows
+- <kbd>super</kbd>+<kbd>space</kbd>: iTerm hotkey window
+- <kbd>super</kbd>+<kbd>char</kbd>: run apps and tools
+- <kbd>super</kbd>+<kbd>,</kbd>/ <kbd>.</kbd> / <kbd>l</kbd> / <kbd>-</kbd> / <kbd>ö</kbd> / <kbd>ü</kbd>: move/resize/arange windows
 - <kbd>super</kbd>+<kbd>number</kbd>: switch spaces
 
 ### Window management
@@ -27,22 +27,26 @@ If it exists on another space, behavior depends on the app:
 - **go to**: jump to the existing window (e.g. messenger)
 - **select**: show app exposé to pick the right window (e.g. IDE)
 
-This mapping is configured manually per app.
+This mapping is configured per app in `config/window_management/setup.yaml`.
 
 #### Tiling
 - <kbd>super</kbd>+<kbd>,</kbd>/<kbd>.</kbd>: tile left/right (cycles 50:50 ↔ 65:35)
-- <kbd>super</kbd>+<kbd>l</kbd>: almost maximize (cycles 90% ↔ 100%)
+- <kbd>super</kbd>+<kbd>l</kbd>: almost maximise (cycles 90% → 100% → 60%)
+- <kbd>super</kbd>+<kbd>-</kbd>: almost minimise to lower left
+- <kbd>super</kbd>+<kbd>ö</kbd>: shift windows to minimise overlap
+- <kbd>super</kbd>+<kbd>ü</kbd>: split or quad-tile windows.
+- <kbd>caps lock</kbd>: cycle focus between frontmost windows
 
 ### Tools
-Whenever a pain point shows up, I build a small tool and wire it into the workflow.
+Approach: When a pain point shows up, build a small tool and integrate it into the workflow.
 
-- **essentials**: launcher & calculator, live in their own hotkey window
+- **essentials**: currently zsh, app launcher, calculator, snippets and search; live in their own hotkey window
 - **regulars**: used often; short names (3–4 chars), sourced into zsh (e.g. `ten`, `clk`, `grab`)
 - **occasionals**: longer descriptive names (e.g. `pytemp`, `compose_mail`)
 
 ## Setup
 
-This project builds on *iTerm2* as the main interface, *Karabiner* for custom keyboard shortcuts and *Hammerspoon* for more complex window management.
+This project builds on *iTerm2* as the main interface, *Karabiner* for custom keyboard shortcuts and *Hammerspoon* for window management.
 - iTerm2
 	- settings > "Load preferences from a custom folder or URL" > `~/toolbelt/config/iTerm2/`
 	- source `~/toolbelt/aliases.sh` in your `zshrc`.
@@ -51,7 +55,7 @@ This project builds on *iTerm2* as the main interface, *Karabiner* for custom ke
 - Hammerspoon
 	- set config from `~/toolbelt/config/hammerspoon/init.lua`
 - MacOS
-	- deactiveate: Settings > Schreibtisch & Dock > Beim Programmwechsel Space auswählen, der geöffnete Fenster des Programms enthält
+	- deactivate: Settings > Schreibtisch & Dock > Beim Programmwechsel Space auswählen, der geöffnete Fenster des Programms enthält
 
 ```sh
 ## link Karabiner config
@@ -63,23 +67,32 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 
 ```
 
-## Examples
+## List of tools
 
-### Miscellaneous
-
-- `grab` `cd`s into the directory of the frontmost finder window.
-- `pytitle|textitle [title] ` copies a commented out *figlet* into the clipboard.
-- `ask [question]` sends a one-off question to opencode.
-- `calc` launches into iPython with the NumPy namespace loaded.
-### clk
-
-`clk [[start|end|break]`  tracks my working hours into `~/clk_log.json`.
-
-The tool is how far you get with a couple of prompts. I keep it deliberately simple, I'm sure there's overkill versions doing the same.
+- essentials
+	- iTerm (<kbd>super</kbd>+<kbd>space</kbd>) open *iTerm* in a hotkey window.
+	- `run` (<kbd>super</kbd>+<kbd>a</kbd>) open apps.
+	- `calc` (<kbd>super</kbd>+<kbd>c</kbd>) iPython with NumPy namespace loaded.
+	- `snipptes` (<kbd>super</kbd>+<kbd>v</kbd>) select and paste text snippets.
+	- `buf` (<kbd>super</kbd>+<kbd>b</kbd>) open a minimal Sublime Text buffer.
+- `window_managemnt` used via keyboard shortcuts
+- `clk [[start|end|break]` track working hours.
+- workflow helpers
+	- `grab`: `cd` into the directory of the frontmost finder window.
+	- `diskusage [glob|.]` list elements sorted by file size
+	- `pytitle|textitle [title]`: copy a commented *figlet* into the clipboard.
+	- `compose_mail`: new message in Outlook PWA
+- requests
+	- `ten|fen|tfr|ffr [word]`: request translation from leo.org.
+	- `ask [question]` sends a one-off question to opencode.
+- python
+	- `pyinit|nbinit [title|.]`: uv project with(out) jupyter
+	- `pytemp|nbtemp`: uv project with(out) jupyter in a temp directory
+	- `snippets` contains e.g. autoreload and shebang snippets for convenience
 
 ## Adding tools
 
-### Naming
+### Naming  Convention
 **Regulars**
 1. If a 3-letter word fits, use that (e.g. `run [app]`).
 2. Else use a 4-letter word (e.g. `calc`).
@@ -89,11 +102,11 @@ The tool is how far you get with a couple of prompts. I keep it deliberately sim
 - Use descriptive names with underscores (e.g. `compose_mail`).
 
 ### Architecture
-A *tool* is always a script somewhere in this repo that gets exposed via `aliases.sh`
-(even if it *could* be done another way).
+A *tool* is always a script somewhere in this repo that gets exposed via `aliases.sh`.
 
 #### Approach
 - Use whatever language makes sense.
+- Vibe code it, if it gets the job done.
 - Keep it short.
 - Don’t implement edge cases until you need them.
 
@@ -102,9 +115,8 @@ A *tool* is always a script somewhere in this repo that gets exposed via `aliase
 - For Python scripts, see `misc/textitle.py` for how to use `uv` deps in the shebang.
 - If a tool grows, give it its own directory.
 - All tools are wired up in `aliases.sh`.
-- Configuration and data goes into `config/<tool>`.
+- Configuration and data goes into `config/<tool>/`.
 - Essentials get dedicated iTerm hotkey windows (duplicate an existing iTerm profile, and remap <kbd>fn≥15</kbd> with karabiner).
   Give each essential a distinct background color.
 ## Todo
-- [ ] find files
 - [ ] integrate OCR screen capture tool
