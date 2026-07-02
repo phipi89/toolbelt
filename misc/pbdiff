@@ -1,0 +1,95 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# dependencies = []
+# ///
+
+import difflib
+import re
+import subprocess
+import sys
+import argparse
+
+
+def _clipboard_text() -> str:
+    result = subprocess.run(["pbpaste"], text=True, capture_output=True, check=False)
+    if result.returncode != 0:
+        raise SystemExit(result.returncode)
+    return result.stdout
+
+
+def _split_at_longest_newline_run(text: str) -> tuple[str, str]:
+    matches = list(re.finditer(r"\n+", text))
+    if not matches:
+        raise SystemExit("clipboard does not contain a newline separator")
+
+    match = max(matches, key=lambda m: m.end() - m.start())
+    return text[: match.start()], text[match.end() :]
+
+
+def _tokens(text: str) -> list[str]:
+    return re.findall(r"\s+|\w+|[^\w\s]+", text, flags=re.UNICODE)
+
+
+def _red_strike(text: str, color: bool) -> str:
+    if color:
+        return f"\033[31m\033[9m{text}\033[0m"
+    return f"~~{text}~~"
+
+
+def _green(text: str, color: bool) -> str:
+    if color:
+        return f"\033[32m{text}\033[0m"
+    return f"{{+{text}+}}"
+
+
+def _inline_diff(first: str, second: str, color: bool) -> str:
+    first_tokens = _tokens(first)
+    second_tokens = _tokens(second)
+    matcher = difflib.SequenceMatcher(None, first_tokens, second_tokens)
+    out = []
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        old = "".join(first_tokens[i1:i2])
+        new = "".join(second_tokens[j1:j2])
+        if tag == "equal":
+            out.append(old)
+        elif tag == "delete":
+            out.append(_red_strike(old, color))
+        elif tag == "insert":
+            out.append(_green(new, color))
+        elif tag == "replace":
+            out.append(_red_strike(old, color))
+            out.append(_green(new, color))
+    return "".join(out)
+
+
+def _line_diff(first: str, second: str) -> list[str]:
+    return list(
+        difflib.unified_diff(
+            first.splitlines(),
+            second.splitlines(),
+            fromfile="clipboard:first",
+            tofile="clipboard:second",
+            lineterm="",
+        )
+    )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--line", action="store_true", help="print unified line diff")
+    parser.add_argument("--no-color", action="store_true", help="disable ANSI colors")
+    args = parser.parse_args()
+
+    new, original = _split_at_longest_newline_run(_clipboard_text())
+    if args.line:
+        for line in _line_diff(original, new):
+            print(line)
+        return
+
+    print(_inline_diff(original, new, color=not args.no_color), end="")
+    if new and not new.endswith("\n"):
+        print()
+
+
+if __name__ == "__main__":
+    main()

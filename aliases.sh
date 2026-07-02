@@ -88,7 +88,7 @@ ffr() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t de -f fr -m 6 "$@";) }
 alias textitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/textitle.py'
 alias pytitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/textitle.py --prefix "#"'
 
-ask(){ gemini -p "$*"; }
+ask(){ opencode run "$*"; }
 
 source "$TOOLBELT/grab/grab.sh"
 source "$TOOLBELT/misc/compose_mail.sh"

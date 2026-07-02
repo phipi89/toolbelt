@@ -69,7 +69,7 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 
 - `grab` `cd`s into the directory of the frontmost finder window.
 - `pytitle|textitle [title] ` copies a commented out *figlet* into the clipboard.
-- `ask [question]` sends a one-off question to gemini.
+- `ask [question]` sends a one-off question to opencode.
 - `calc` launches into iPython with the NumPy namespace loaded.
 ### clk
 
