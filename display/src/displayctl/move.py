@@ -3,7 +3,9 @@ from __future__ import annotations
 from . import geometry, yabai
 
 
-def _usable_bounds_from_frames(*frames: dict[str, float]) -> tuple[float, float, float, float]:
+def _usable_bounds_from_frames(
+    *frames: dict[str, float],
+) -> tuple[float, float, float, float]:
     min_x = min(frame["x"] for frame in frames)
     min_y = min(frame["y"] for frame in frames)
     max_x = max(frame["x"] + frame["w"] for frame in frames)
@@ -29,19 +31,25 @@ def _grid_frame(
     }
 
 
-def _framed_half_bounds(left_frame: dict[str, float]) -> tuple[float, float, float, float]:
+def _framed_half_bounds(
+    left_frame: dict[str, float],
+) -> tuple[float, float, float, float]:
     w = left_frame["w"] * 20 / 9
     h = left_frame["h"] * 20 / 18
     return left_frame["x"] - w / 20, left_frame["y"] - h / 20, w, h
 
 
-def _framed_weighted_bounds(left_frame: dict[str, float]) -> tuple[float, float, float, float]:
+def _framed_weighted_bounds(
+    left_frame: dict[str, float],
+) -> tuple[float, float, float, float]:
     w = left_frame["w"] * 30 / 19
     h = left_frame["h"] * 20 / 18
     return left_frame["x"] - w / 30, left_frame["y"] - h / 20, w, h
 
 
-def _overlaps(a: dict[str, float], b: dict[str, float], tolerance: float = 12.0) -> bool:
+def _overlaps(
+    a: dict[str, float], b: dict[str, float], tolerance: float = 12.0
+) -> bool:
     return not (
         a["x"] + a["w"] <= b["x"] + tolerance
         or b["x"] + b["w"] <= a["x"] + tolerance
@@ -58,7 +66,9 @@ def _has_overlap(wins: list[dict]) -> bool:
     return False
 
 
-def _corner_position(frame: dict[str, float], corner: str, bounds: tuple[float, float, float, float]) -> tuple[float, float]:
+def _corner_position(
+    frame: dict[str, float], corner: str, bounds: tuple[float, float, float, float]
+) -> tuple[float, float]:
     x, y, w, h = bounds
     width = min(frame["w"], w)
     height = min(frame["h"], h)
@@ -67,31 +77,43 @@ def _corner_position(frame: dict[str, float], corner: str, bounds: tuple[float, 
     return target_x, target_y
 
 
-def _move_to_corner(win: dict, corner: str, bounds: tuple[float, float, float, float]) -> None:
+def _move_to_corner(
+    win: dict, corner: str, bounds: tuple[float, float, float, float]
+) -> None:
     x, y = _corner_position(win["frame"], corner, bounds)
     yabai.move_abs(win["id"], x, y)
 
 
-def _split_state(left_frame: dict[str, float], right_frame: dict[str, float]) -> str | None:
+def _split_state(
+    left_frame: dict[str, float], right_frame: dict[str, float]
+) -> str | None:
     x, y, w, h = _usable_bounds_from_frames(left_frame, right_frame)
     left_half, right_half = geometry.halves(x, y, w, h)
     left_two_thirds, right_one_third = geometry.weighted_left(x, y, w, h)
 
-    if geometry.same_frame(left_frame, left_half) and geometry.same_frame(right_frame, right_half):
+    if geometry.same_frame(left_frame, left_half) and geometry.same_frame(
+        right_frame, right_half
+    ):
         return "half"
-    if geometry.same_frame(left_frame, left_two_thirds) and geometry.same_frame(right_frame, right_one_third):
+    if geometry.same_frame(left_frame, left_two_thirds) and geometry.same_frame(
+        right_frame, right_one_third
+    ):
         return "weighted"
 
     half_frame_bounds = _framed_half_bounds(left_frame)
     framed_left_half = _grid_frame(half_frame_bounds, 20, 20, 1, 1, 9, 18)
     framed_right_half = _grid_frame(half_frame_bounds, 20, 20, 10, 1, 9, 18)
-    if geometry.same_frame(left_frame, framed_left_half) and geometry.same_frame(right_frame, framed_right_half):
+    if geometry.same_frame(left_frame, framed_left_half) and geometry.same_frame(
+        right_frame, framed_right_half
+    ):
         return "framed_half"
 
     weighted_frame_bounds = _framed_weighted_bounds(left_frame)
     framed_left_weighted = _grid_frame(weighted_frame_bounds, 20, 30, 1, 1, 19, 18)
     framed_right_weighted = _grid_frame(weighted_frame_bounds, 20, 30, 20, 1, 9, 18)
-    if geometry.same_frame(left_frame, framed_left_weighted) and geometry.same_frame(right_frame, framed_right_weighted):
+    if geometry.same_frame(left_frame, framed_left_weighted) and geometry.same_frame(
+        right_frame, framed_right_weighted
+    ):
         return "framed_weighted"
 
     return None
@@ -100,7 +122,9 @@ def _split_state(left_frame: dict[str, float], right_frame: dict[str, float]) ->
 def _split_pair(wins: list[dict]) -> tuple[dict, dict, str] | None:
     for index, first in enumerate(wins):
         for second in wins[index + 1 :]:
-            left_win, right_win = sorted([first, second], key=lambda win: win["frame"]["x"])
+            left_win, right_win = sorted(
+                [first, second], key=lambda win: win["frame"]["x"]
+            )
             state = _split_state(left_win["frame"], right_win["frame"])
             if state:
                 return left_win, right_win, state
@@ -131,10 +155,17 @@ def _display_usable_bounds() -> tuple[float, float, float, float]:
 
 def _display_bounds() -> tuple[float, float, float, float]:
     display_frame = yabai.query_display()["frame"]
-    return display_frame["x"], display_frame["y"], display_frame["w"], display_frame["h"]
+    return (
+        display_frame["x"],
+        display_frame["y"],
+        display_frame["w"],
+        display_frame["h"],
+    )
 
 
-def _corner_slot(corner: str, bounds: tuple[float, float, float, float]) -> dict[str, float]:
+def _corner_slot(
+    corner: str, bounds: tuple[float, float, float, float]
+) -> dict[str, float]:
     x, y, w, h = bounds
     slots = {
         "top_left": {"x": x, "y": y, "w": w / 2, "h": h / 2},
@@ -145,6 +176,107 @@ def _corner_slot(corner: str, bounds: tuple[float, float, float, float]) -> dict
     return slots[corner]
 
 
+def _clamp(value: float, lower: float, upper: float) -> float:
+    return max(lower, min(value, upper))
+
+
+def _place_candidate(
+    x: float,
+    y: float,
+    width: float,
+    height: float,
+    bounds: tuple[float, float, float, float],
+) -> dict[str, float]:
+    bx, by, bw, bh = bounds
+    return {
+        "x": _clamp(x, bx, bx + bw - width),
+        "y": _clamp(y, by, by + bh - height),
+        "w": width,
+        "h": height,
+    }
+
+
+def _unique_frames(frames: list[dict[str, float]]) -> list[dict[str, float]]:
+    seen: set[tuple[int, int, int, int]] = set()
+    unique = []
+    for frame in frames:
+        key = tuple(round(frame[item]) for item in ("x", "y", "w", "h"))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(frame)
+    return unique
+
+
+def _place_candidates(
+    target: dict[str, float],
+    others: list[dict],
+    bounds: tuple[float, float, float, float],
+) -> list[dict[str, float]]:
+    bx, by, bw, bh = bounds
+    width = bw * 0.67
+    height = bh * 0.67
+    max_x = bx + bw - width
+    max_y = by + bh - height
+    current_center = geometry.center(target)
+    candidates = [
+        _place_candidate(bx, by, width, height, bounds),
+        _place_candidate(max_x, by, width, height, bounds),
+        _place_candidate(bx, max_y, width, height, bounds),
+        _place_candidate(max_x, max_y, width, height, bounds),
+        _place_candidate(
+            bx + (bw - width) / 2, by + (bh - height) / 2, width, height, bounds
+        ),
+        _place_candidate(
+            current_center["x"] - width / 2,
+            current_center["y"] - height / 2,
+            width,
+            height,
+            bounds,
+        ),
+    ]
+
+    for row in range(4):
+        for col in range(4):
+            x = bx + (bw - width) * col / 3
+            y = by + (bh - height) * row / 3
+            candidates.append(_place_candidate(x, y, width, height, bounds))
+
+    x_positions = [candidate["x"] for candidate in candidates]
+    y_positions = [candidate["y"] for candidate in candidates]
+    for other in others:
+        frame = other["frame"]
+        x_positions.extend(
+            [
+                frame["x"],
+                frame["x"] + frame["w"] - width,
+                frame["x"] - width,
+                frame["x"] + frame["w"],
+                frame["x"] + frame["w"] / 2 - width / 2,
+            ]
+        )
+        y_positions.extend(
+            [
+                frame["y"],
+                frame["y"] + frame["h"] - height,
+                frame["y"] - height,
+                frame["y"] + frame["h"],
+                frame["y"] + frame["h"] / 2 - height / 2,
+            ]
+        )
+    for x in x_positions:
+        for y in y_positions:
+            candidates.append(_place_candidate(x, y, width, height, bounds))
+
+    return _unique_frames(candidates)
+
+
+def _same_display(win: dict, display: dict) -> bool:
+    return win.get("display") == display.get("id") or win.get("display") == display.get(
+        "index"
+    )
+
+
 def _corner_order(count: int) -> list[str]:
     if count == 2:
         return ["top_left", "bottom_right"]
@@ -153,7 +285,9 @@ def _corner_order(count: int) -> list[str]:
     return ["top_left", "top_right", "bottom_right", "bottom_left"][:count]
 
 
-def _place_by_nearest_slot(wins: list[dict], slots: list[dict[str, float]]) -> list[dict | None]:
+def _place_by_nearest_slot(
+    wins: list[dict], slots: list[dict[str, float]]
+) -> list[dict | None]:
     placed: list[dict | None] = [None] * min(len(wins), len(slots))
     used: set[int] = set()
 
@@ -165,7 +299,9 @@ def _place_by_nearest_slot(wins: list[dict], slots: list[dict[str, float]]) -> l
                 break
 
     free_slots = [index for index, win in enumerate(placed) if win is None]
-    loose_windows = [(index, win) for index, win in enumerate(wins) if index not in used]
+    loose_windows = [
+        (index, win) for index, win in enumerate(wins) if index not in used
+    ]
 
     best_cost: float | None = None
     best_order: list[dict] | None = None
@@ -186,7 +322,12 @@ def _place_by_nearest_slot(wins: list[dict], slots: list[dict[str, float]]) -> l
                 continue
             taken.add(loose_index)
             order.append(win)
-            search(pos + 1, cost + geometry.dist2(geometry.center(win["frame"]), slot_center), order, taken)
+            search(
+                pos + 1,
+                cost + geometry.dist2(geometry.center(win["frame"]), slot_center),
+                order,
+                taken,
+            )
             order.pop()
             taken.remove(loose_index)
 
@@ -246,10 +387,14 @@ def reduce() -> None:
     yabai.grid(win["id"], "10:10:0:7:3:3")
 
 
-def _same_horizontal_percent(frame: dict[str, float], display_frame: dict[str, float], start: float, width: float) -> bool:
+def _same_horizontal_percent(
+    frame: dict[str, float], display_frame: dict[str, float], start: float, width: float
+) -> bool:
     expected_x = display_frame["x"] + display_frame["w"] * start
     expected_w = display_frame["w"] * width
-    return geometry.close(frame["x"], expected_x, 8) and geometry.close(frame["w"], expected_w, 8)
+    return geometry.close(frame["x"], expected_x, 8) and geometry.close(
+        frame["w"], expected_w, 8
+    )
 
 
 def center(size: float | None = None, reverse: bool = False) -> None:
@@ -284,6 +429,36 @@ def center(size: float | None = None, reverse: bool = False) -> None:
         yabai.grid(win["id"], "100:100:5:5:90:90")
     else:
         yabai.grid(win["id"], "100:100:5:5:90:90")
+
+
+def place() -> None:
+    win = yabai.query_window()
+    display = yabai.query_display()
+    display_frame = display["frame"]
+    bounds = (
+        display_frame["x"],
+        display_frame["y"],
+        display_frame["w"],
+        display_frame["h"],
+    )
+    others = [
+        other
+        for other in _eligible_windows()
+        if other["id"] != win["id"] and _same_display(other, display)
+    ]
+    candidates = _place_candidates(win["frame"], others, bounds)
+    current_center = geometry.center(win["frame"])
+
+    def score(frame: dict[str, float]) -> tuple[float, float]:
+        overlap = sum(geometry.overlap_area(frame, other["frame"]) for other in others)
+        movement = geometry.dist2(geometry.center(frame), current_center)
+        return overlap, movement
+
+    best = min(candidates, key=score)
+    bx, by, bw, bh = bounds
+    start_x = (best["x"] - bx) * 100 / bw
+    start_y = (best["y"] - by) * 100 / bh
+    yabai.grid(win["id"], f"100:100:{start_x:g}:{start_y:g}:67:67")
 
 
 def cycle(target_index: int = 2) -> None:
@@ -360,20 +535,26 @@ def split(frontmost_right: bool = False, frame: bool = False) -> None:
     left_half, right_half = geometry.halves(x, y, w, h)
     left_two_thirds, right_one_third = geometry.weighted_left(x, y, w, h)
 
-    is_half = geometry.same_frame(left_frame, left_half) and geometry.same_frame(right_frame, right_half)
-    is_weighted = geometry.same_frame(left_frame, left_two_thirds) and geometry.same_frame(right_frame, right_one_third)
+    is_half = geometry.same_frame(left_frame, left_half) and geometry.same_frame(
+        right_frame, right_half
+    )
+    is_weighted = geometry.same_frame(
+        left_frame, left_two_thirds
+    ) and geometry.same_frame(right_frame, right_one_third)
 
     half_frame_bounds = _framed_half_bounds(left_frame)
     framed_left_half = _grid_frame(half_frame_bounds, 20, 20, 1, 1, 9, 18)
     framed_right_half = _grid_frame(half_frame_bounds, 20, 20, 10, 1, 9, 18)
-    is_framed_half = geometry.same_frame(left_frame, framed_left_half) and geometry.same_frame(right_frame, framed_right_half)
+    is_framed_half = geometry.same_frame(
+        left_frame, framed_left_half
+    ) and geometry.same_frame(right_frame, framed_right_half)
 
     weighted_frame_bounds = _framed_weighted_bounds(left_frame)
     framed_left_weighted = _grid_frame(weighted_frame_bounds, 20, 30, 1, 1, 19, 18)
     framed_right_weighted = _grid_frame(weighted_frame_bounds, 20, 30, 20, 1, 9, 18)
-    is_framed_weighted = geometry.same_frame(left_frame, framed_left_weighted) and geometry.same_frame(
-        right_frame, framed_right_weighted
-    )
+    is_framed_weighted = geometry.same_frame(
+        left_frame, framed_left_weighted
+    ) and geometry.same_frame(right_frame, framed_right_weighted)
 
     if frame:
         if is_half or is_framed_half:

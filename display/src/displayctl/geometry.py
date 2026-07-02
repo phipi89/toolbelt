@@ -41,6 +41,12 @@ def dist2(a: dict[str, float], b: dict[str, float]) -> float:
     return dx * dx + dy * dy
 
 
+def overlap_area(a: dict[str, float], b: dict[str, float]) -> float:
+    width = max(0.0, min(a["x"] + a["w"], b["x"] + b["w"]) - max(a["x"], b["x"]))
+    height = max(0.0, min(a["y"] + a["h"], b["y"] + b["h"]) - max(a["y"], b["y"]))
+    return width * height
+
+
 def quads(x: float, y: float, w: float, h: float) -> list[dict[str, float]]:
     return [
         {"x": x, "y": y, "w": w / 2, "h": h / 2},

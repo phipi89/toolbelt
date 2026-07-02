@@ -15,6 +15,7 @@ def main() -> None:
     subparsers.add_parser("quad")
     subparsers.add_parser("tile")
     subparsers.add_parser("distribute")
+    subparsers.add_parser("place")
 
     center_parser = subparsers.add_parser("center")
     center_parser.add_argument("--size", type=float)
@@ -55,6 +56,8 @@ def main() -> None:
         move.tile()
     elif args.command == "distribute":
         move.distribute()
+    elif args.command == "place":
+        move.place()
     elif args.command == "center":
         move.center(size=args.size, reverse=args.reverse)
     elif args.command == "cycle":
