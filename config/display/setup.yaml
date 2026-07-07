@@ -48,5 +48,8 @@ apps:
   Zotero:
     action: move_here
 
+  "Beat Music Player":
+    action: move_here
+
 
 default_action: goto
