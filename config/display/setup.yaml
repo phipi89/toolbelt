@@ -2,7 +2,6 @@
 apps:
   Firefox:
     action: spawn_new
-    # spawn_script: /opt/homebrew/bin/hs -c 'local app=hs.appfinder.appFromName("Firefox"); if app then hs.eventtap.keyStroke({"cmd"},"n",0,app) end'
 
   Google Chrome:
     action: spawn_new
