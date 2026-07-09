@@ -65,17 +65,15 @@ alias clk='noglob _clk'
 
 
 
-#  _     _____ ___
-# | |   | ____/ _ \  ___  _ __ __ _
-# | |   |  _|| | | |/ _ \| '__/ _` |
-# | |___| |__| |_| | (_) | | | (_| |
-# |_____|_____\___(_)___/|_|  \__, |
-#                             |___/
+# TRANSLATION
 
-fen() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t de -f en -m 6 "$@";) }
-ten() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t en -f de -m 6 "$@";) }
-tfr() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t fr -f de -m 6 "$@";) }
-ffr() { (cd "$TOOLBELT/leo" || return 1; uv run leo -t de -f fr -m 6 "$@";) }
+translate() { (cd "$TOOLBELT/translate" || return 1; uv run translate "$@";) }
+fen() { (cd "$TOOLBELT/translate" || return 1; uv run translate fen "$@";) }
+ten() { (cd "$TOOLBELT/translate" || return 1; uv run translate ten "$@";) }
+tfr() { (cd "$TOOLBELT/translate" || return 1; uv run translate tfr "$@";) }
+ffr() { (cd "$TOOLBELT/translate" || return 1; uv run translate ffr "$@";) }
+tit() { (cd "$TOOLBELT/translate" || return 1; uv run translate tit "$@";) }
+fit() { (cd "$TOOLBELT/translate" || return 1; uv run translate fit "$@";) }
 
 
 

@@ -83,7 +83,7 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 	- `pytitle|textitle [title]`: copy a commented *figlet* into the clipboard.
 	- `compose_mail`: new message in Outlook PWA
 - requests
-	- `ten|fen|tfr|ffr [word]`: request translation from leo.org.
+	- `ten|fen|tfr|ffr|tit|fit [word]`: request translation via PONS.
 	- `ask [question]` sends a one-off question to opencode.
 - python
 	- `pyinit|nbinit [title|.]`: uv project with(out) jupyter

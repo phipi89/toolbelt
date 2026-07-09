@@ -1,5 +1,5 @@
 [project]
-name = "leo"
+name = "translate"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-leo = "leo.main:main"
+translate = "translate.main:main"
 
 [tool.uv]
 package = true
