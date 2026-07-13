@@ -1,0 +1,17 @@
+[project]
+name = "setup"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = ["displayctl", "pyyaml>=6.0.2"]
+
+[project.scripts]
+setup = "setup.cli:main"
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+displayctl = { path = "../display", editable = true }
+
+[project.optional-dependencies]
+dev = []

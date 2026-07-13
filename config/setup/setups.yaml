@@ -1,0 +1,19 @@
+setups:
+  home:
+    windows:
+    - app: Firefox
+      frame:
+        x: 2717.0
+        y: 1418.0
+        w: 1283.0
+        h: 762.0
+      app_path: /Applications/Firefox.app
+      bundle_id: org.mozilla.firefox
+    - app: Signal
+      frame:
+        x: 2560.0
+        y: 1311.0
+        w: 1255.0
+        h: 751.0
+      app_path: /Applications/Signal.app
+      bundle_id: org.whispersystems.signal-desktop
