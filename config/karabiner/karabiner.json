@@ -362,17 +362,6 @@
                                 },
                                 "to": [{ "key_code": "f18" }],
                                 "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "key_code": "return_or_enter",
-                                    "modifiers": {
-                                        "mandatory": ["left_command", "left_shift"],
-                                        "optional": ["any"]
-                                    }
-                                },
-                                "to": [{ "shell_command": "/Users/philippaebischer/toolbelt/misc/ask-selection.sh" }],
-                                "type": "basic"
                             }
                         ]
                     }
