@@ -46,15 +46,14 @@ Approach: When a pain point shows up, build a small tool and integrate it into t
 
 ## Setup
 
-This project builds on *iTerm2* as the main interface, *Karabiner* for custom keyboard shortcuts and *Hammerspoon* for window management.
+This project builds on *iTerm2* as the main interface, *Karabiner* for custom keyboard shortcuts and *yabai* for window management.
 - iTerm2
 	- settings > "Load preferences from a custom folder or URL" > `~/toolbelt/config/iTerm2/`
 	- source `~/toolbelt/aliases.sh` in your `zshrc`.
-- Karabiner Elements
+- Karabiner Elements (`brew install karabiner-elements`)
 	- symlink config into this repo (see below)
-- Hammerspoon
-	- set config from `~/toolbelt/config/hammerspoon/init.lua`
-- MacOS
+- yabai (`brew install asmvik/formulae/yabai`)
+		- MacOS
 	- deactivate: Settings > Schreibtisch & Dock > Beim Programmwechsel Space auswählen, der geöffnete Fenster des Programms enthält
 
 ```sh
@@ -67,7 +66,7 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 
 ```
 
-## List of tools
+## Most important tools
 
 - essentials
 	- iTerm (<kbd>super</kbd>+<kbd>space</kbd>) open *iTerm* in a hotkey window.
@@ -75,13 +74,13 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 	- `calc` (<kbd>super</kbd>+<kbd>c</kbd>) iPython with NumPy namespace loaded.
 	- `snipptes` (<kbd>super</kbd>+<kbd>v</kbd>) select and paste text snippets.
 	- `buf` (<kbd>super</kbd>+<kbd>b</kbd>) open a minimal Sublime Text buffer.
-- `window_managemnt` used via keyboard shortcuts
+- `displayctl` used via keyboard shortcuts
+- `setup save|open|list|suggest-name|edit`: save and restore current-screen window setups.
 - `clk [[start|end|break]` track working hours.
 - workflow helpers
 	- `grab`: `cd` into the directory of the frontmost finder window.
 	- `diskusage [glob|.]` list elements sorted by file size
 	- `pytitle|textitle [title]`: copy a commented *figlet* into the clipboard.
-	- `compose_mail`: new message in Outlook PWA
 - requests
 	- `ten|fen|tfr|ffr|tit|fit [word]`: request translation via PONS.
 	- `ask [question]` sends a one-off question to opencode.
@@ -102,7 +101,7 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 - Use descriptive names with underscores (e.g. `compose_mail`).
 
 ### Architecture
-A *tool* is always a script somewhere in this repo that gets exposed via `aliases.sh`.
+A *tool* is a script somewhere in this repo, exposed or directly defined in `aliases.sh`.
 
 #### Approach
 - Use whatever language makes sense.
@@ -118,5 +117,39 @@ A *tool* is always a script somewhere in this repo that gets exposed via `aliase
 - Configuration and data goes into `config/<tool>/`.
 - Essentials get dedicated iTerm hotkey windows (duplicate an existing iTerm profile, and remap <kbd>fn≥15</kbd> with karabiner).
   Give each essential a distinct background color.
+
+
+## All tools
+
+| Tool           | Trigger                           | Description                                |
+| -------------- | --------------------------------- | ------------------------------------------ |
+| `iTerm`        | <kbd>super</kbd>+<kbd>space</kbd> | Hotkey window terminal                     |
+| `run`          | <kbd>super</kbd>+<kbd>a</kbd>     | App launcher                               |
+| `calc`         | <kbd>super</kbd>+<kbd>c</kbd>     | iPython with NumPy loaded                  |
+| `search`       | <kbd>super</kbd>+<kbd>b</kbd>     | Fuzzy file search through mdfind           |
+| `snippets`     | <kbd>super</kbd>+<kbd>v</kbd>     | Paste text snippets                        |
+| `buf`          | <kbd>super</kbd>+<kbd>b</kbd>     | Cot editor text scratch buffer             |
+| `setup`        | `setup ...`                       | Save/restore/edit window setups            |
+| `clk`          | `clk ...`                         | Time tracking                              |
+| `pbdiff`       | `pbdiff`                          | Diff the clipboard entry                   |
+| `timer`        | `timer`                           | Timer                                      |
+| `grab`         | `grab`                            | `cd` into the frontmost Finder directory   |
+| `diskusage`    | `diskusage`                       | List directory contents sorted by size     |
+| `textitle`     | `textitle <text>`                 | Comment-prefixed figlet title to clipboard |
+| `pytitle`      | `pytitle <text>`                  | Same with `#` prefix                       |
+| `compose_mail` | <kbd>super</kbd>+<kbd>m</kbd>     | New Outlook message                        |
+| `ten`          | `ten <word>`                      | German→English translation                 |
+| `fen`          | `fen <word>`                      | English→German translation                 |
+| `tfr`          | `tfr <word>`                      | German→French translation                  |
+| `ffr`          | `ffr <word>`                      | French→German translation                  |
+| `tit`          | `tit <word>`                      | German→Italian translation                 |
+| `fit`          | `fit <word>`                      | Italian→German translation                 |
+| `ask`          | `ask <question>`                  | Ask a one-off question, via opencode       |
+| `oc`           | `oc`                              | Shortcut for `opencode -c`                 |
+| `pyinit`       | `pyinit`                          | Create uv Python project                   |
+| `nbinit`       | `nbinit`                          | Create uv Jupyter project                  |
+| `pytemp`       | `pytemp`                          | uv Python project in temp directory        |
+| `nbtemp`       | `nbtemp`                          | uv Jupyter project in temp directory       |
+
 ## Todo
 - [ ] integrate OCR screen capture tool

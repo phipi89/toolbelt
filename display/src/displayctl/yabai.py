@@ -83,8 +83,20 @@ def move_abs(window_id: int, x: float, y: float) -> None:
     timing.time_call("yabai window --move", subprocess.run, ["yabai", "-m", "window", str(window_id), "--move", f"abs:{x:g}:{y:g}"], check=True)
 
 
+def resize_abs(window_id: int, width: float, height: float) -> None:
+    timing.time_call("yabai window --resize", subprocess.run, ["yabai", "-m", "window", str(window_id), "--resize", f"abs:{width:g}:{height:g}"], check=True)
+
+
+def set_frame(window_id: int, frame: dict[str, float]) -> None:
+    resize_abs(window_id, frame["w"], frame["h"])
+    move_abs(window_id, frame["x"], frame["y"])
+
+
+def close(window_id: int) -> None:
+    timing.time_call("yabai window --close", subprocess.run, ["yabai", "-m", "window", str(window_id), "--close"], check=True)
+
+
 def move_space(window_id: int, space_id: int) -> None:
     timing.time_call("yabai window --space", subprocess.run, ["yabai", "-m", "window", str(window_id), "--space", str(space_id)], check=True)
-
 
 
