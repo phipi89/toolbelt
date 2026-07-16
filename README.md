@@ -26,8 +26,9 @@ If it exists on another space, behavior depends on the app:
 - **spawn new**: open a fresh window (e.g. browser)
 - **go to**: jump to the existing window (e.g. messenger)
 - **select**: show app exposé to pick the right window (e.g. IDE)
+- **move here**: bring the app to current space (e.g. DeepL)
 
-This mapping is configured per app in `config/window_management/setup.yaml`.
+This mapping is configured per app in `config/display/setup.yaml`.
 
 #### Tiling
 - <kbd>super</kbd>+<kbd>,</kbd>/<kbd>.</kbd>: tile left/right (cycles 50:50 ↔ 65:35)
@@ -73,12 +74,14 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 	- `run` (<kbd>super</kbd>+<kbd>a</kbd>) open apps.
 	- `calc` (<kbd>super</kbd>+<kbd>c</kbd>) iPython with NumPy namespace loaded.
 	- `snipptes` (<kbd>super</kbd>+<kbd>v</kbd>) select and paste text snippets.
-	- `buf` (<kbd>super</kbd>+<kbd>b</kbd>) open a minimal Sublime Text buffer.
+	- `buf` (<kbd>super</kbd>+<kbd>t</kbd>) open Cot editor as text buffer.
+	- `search` (<kbd>super</kbd>+<kbd>b</kbd>) Search through spotlight indexed files.
 - `displayctl` used via keyboard shortcuts
 - `setup save|open|list|suggest-name|edit`: save and restore current-screen window setups.
 - `clk [[start|end|break]` track working hours.
 - workflow helpers
 	- `grab`: `cd` into the directory of the frontmost finder window.
+	- `gsnap`: snapshot the selected Finder file into `snapshots/`.
 	- `diskusage [glob|.]` list elements sorted by file size
 	- `pytitle|textitle [title]`: copy a commented *figlet* into the clipboard.
 - requests
@@ -111,10 +114,10 @@ A *tool* is a script somewhere in this repo, exposed or directly defined in `ali
 
 #### Organisation
 - `misc/` is for small, single-file scripts.
-- For Python scripts, see `misc/textitle.py` for how to use `uv` deps in the shebang.
+- For Python scripts, see `misc/textitle.py` for how to use `uv` and dependencies with shebangs.
 - If a tool grows, give it its own directory.
 - All tools are wired up in `aliases.sh`.
-- Configuration and data goes into `config/<tool>/`.
+- Configuration and data goes into `config/<tool>/`. Where appropriate, local configuration that should not be shared goes into `~/.toolbelt-local`.
 - Essentials get dedicated iTerm hotkey windows (duplicate an existing iTerm profile, and remap <kbd>fn≥15</kbd> with karabiner).
   Give each essential a distinct background color.
 
@@ -134,6 +137,8 @@ A *tool* is a script somewhere in this repo, exposed or directly defined in `ali
 | `pbdiff`       | `pbdiff`                          | Diff the clipboard entry                   |
 | `timer`        | `timer`                           | Timer                                      |
 | `grab`         | `grab`                            | `cd` into the frontmost Finder directory   |
+| `gsnap`        | `gsnap`                           | Snapshot selected Finder file              |
+| `gtouch`       | `gtouch <fname>`                  | Create file in frontmost Finder directory  |
 | `diskusage`    | `diskusage`                       | List directory contents sorted by size     |
 | `textitle`     | `textitle <text>`                 | Comment-prefixed figlet title to clipboard |
 | `pytitle`      | `pytitle <text>`                  | Same with `#` prefix                       |

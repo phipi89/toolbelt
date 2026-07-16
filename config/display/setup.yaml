@@ -47,6 +47,9 @@ apps:
   Zotero:
     action: move_here
 
+  Deepl:
+    action: move_here
+
   "Beat Music Player":
     action: move_here
 
