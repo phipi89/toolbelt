@@ -80,6 +80,7 @@ alias textitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/tex
 alias pytitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/textitle.py --prefix "#"'
 source "$TOOLBELT/misc/compose_mail.sh"
 source "$TOOLBELT/misc/yank-to-clipboard.sh"
+source "$TOOLBELT/misc/gsnap.sh"
 source $TOOLBELT/misc/diskusage.sh
 source $TOOLBELT/misc/eject-all.sh
 setup() { "$TOOLBELT/setup/setup.sh" "$@"; }

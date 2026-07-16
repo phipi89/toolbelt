@@ -1,0 +1,13 @@
+tell application "Finder"
+	set theSelection to selection
+	if theSelection is {} then
+		error "select a file in Finder"
+	end if
+
+	set firstItem to item 1 of theSelection
+	if class of firstItem is folder then
+		error "selected item is a folder"
+	end if
+
+	return POSIX path of (firstItem as alias)
+end tell
