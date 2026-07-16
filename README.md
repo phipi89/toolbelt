@@ -90,7 +90,7 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 - python
 	- `pyinit|nbinit [title|.]`: uv project with(out) jupyter
 	- `pytemp|nbtemp`: uv project with(out) jupyter in a temp directory
-	- `snippets` contains e.g. autoreload and shebang snippets for convenience
+	- `snippets --edit` opens shared snippets; `snippets --edit --local` opens machine-local snippets.
 
 ## Adding tools
 
