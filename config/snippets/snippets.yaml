@@ -1,9 +1,6 @@
 py:
   init: |
-    %load_ext autoreload
-    %autoreload 2
-    import numpy as np
-    import eartools.utils as earutils
+    from eartools import *
 
   shebang: |
     #!/usr/bin/env -S uv run
@@ -13,7 +10,13 @@ py:
 
   eartools: |
     [tool.uv.sources]
-    eartools = { path = "/Users/philippaebischer/Documents/HRL/Projects/eartools", editable = true}
+      # source through github (static)
+      # add tag = "v0.2.3" or rev = "969391f505b12b898dda8da9afd82352b485d454"
+      # phipy-plots = { git = "https://github.com/phipi89/phipy-plots" }
+
+      # source locally (editable)
+      eartools = { path = "../../eartools", editable = true }
+      phipy = { path = "../../phipy", editable = true }
 
   autoreload: |
     %load_ext autoreload
@@ -32,47 +35,35 @@ py:
 
   plt-fig: |
     fig = plt.figure(figsize=(12, 8))
+
     ax = fig.add_subplot(111)
+
+    fig.show()
 
   plt-3dfig: |
     fig = plt.figure(figsize=(12, 8))
+
     ax = fig.add_subplot(111, projection="3d")
+
+    fig.show()
 
   plotly-fig: |
     fig = Figure()
+
+
+
     fig.show()
-
-
-
-text:
-  signature: |
-    Philipp Aebischer
-
-    Hearing Research Laboratory
-    ARTORG Center for Biomedical Engineering Research
-    University of Bern
-    Murtenstrasse 50 | CH-3008 Bern
-     
-    Department of Otolaryngology, Head and Neck Surgery
-    Bern University Hospital, Inselspital
-    Freiburgstrasse 18 | CH-3010 Bern
-     
-    www.artorg.unibe.ch/research/hrl
-    philipp.aebischer@unibe.ch
-    +41 31 684 14 25
-
-  email : philipp.aebischer@unibe.ch
 
 
 
 tex:
   figure: |
-    \begin{figure*}[!t] % {figure} for single columns
+    \begin{figure}[!t] % {figure} for single columns
     \centering
     \includegraphics[width=\linewidth]{img/image_name.pdf}
     \caption{Image caption.}
     \label{fig:image-name}
-    \end{figure*}
+    \end{figure}
 
   setup: |
     \usepackage{xcolor}
@@ -92,4 +83,28 @@ tex:
     \newcommand{\secref}[1]{section\ \ref{#1}}
 
 
+
+git:
+  ignore: |
+    # Python
+    __pycache__/
+    *.py[cod]
+
+    # Virtual environments
+    .venv/
+
+    # Build and packaging artifacts
+    build/
+    dist/
+    *.egg-info/
+
+    # macOS
+    .DS_Store
+    ._*
+
+    # editors
+    .opencode/
+    .zed/
+    .vscode/
+    .idea/
 

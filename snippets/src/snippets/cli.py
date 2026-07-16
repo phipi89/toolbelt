@@ -1,4 +1,5 @@
 import argparse
+import os
 import pathlib
 import re
 import subprocess
@@ -182,22 +183,34 @@ def parse_args():
         action="store_true",
         help="Open the snippets config file.",
     )
+    parser.add_argument(
+        "--local",
+        action="store_true",
+        help="With --edit, open the local snippets config file.",
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
+    if args.local and not args.edit:
+        raise SystemExit("snippets: --local only applies with --edit")
 
     root = pathlib.Path(__file__).parents[3]
+    local_root = pathlib.Path(os.environ.get("TOOLBELT_LOCAL", pathlib.Path.home() / ".toolbelt-local"))
     shared_yaml_path = root / "config" / "snippets" / "snippets.yaml"
-    private_yaml_path = root / "config" / "private" / "snippets.yaml"
+    local_yaml_path = local_root / "snippets" / "snippets.yaml"
 
     if not shared_yaml_path.exists():
         print(f"❌ File not found: {shared_yaml_path}")
         return
 
     if args.edit:
-        subprocess.run(["open", str(shared_yaml_path)])
+        edit_path = local_yaml_path if args.local else shared_yaml_path
+        if args.local and not edit_path.exists():
+            edit_path.parent.mkdir(parents=True, exist_ok=True)
+            edit_path.write_text("{}\n")
+        subprocess.run(["open", str(edit_path)])
         return
 
     # toilet Snippets -f pagga
@@ -237,15 +250,15 @@ def main():
         return flattened
 
     shared_data = load_yaml_dict(shared_yaml_path)
-    private_data = load_yaml_dict(private_yaml_path)
-    if shared_data is None or private_data is None:
+    local_data = load_yaml_dict(local_yaml_path)
+    if shared_data is None or local_data is None:
         return
 
-    categories = list(dict.fromkeys([*shared_data.keys(), *private_data.keys()]))
+    categories = list(dict.fromkeys([*shared_data.keys(), *local_data.keys()]))
 
-    # Private snippets override shared on key conflicts.
+    # Local snippets override shared on key conflicts.
     snippets = flatten(shared_data)
-    snippets.update(flatten(private_data))
+    snippets.update(flatten(local_data))
 
     if not snippets:
         print("No snippets found in YAML.")
