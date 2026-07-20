@@ -6,7 +6,7 @@ import sys
 import time
 from typing import Any
 
-from . import move, yabai
+from . import move, timing, yabai
 
 
 def _run(*args: str) -> subprocess.CompletedProcess[str]:
@@ -18,10 +18,12 @@ def _as_string(value: str) -> str:
 
 
 def _app_is_running(app_name: str) -> bool:
-    result = _run(
+    result = timing.time_call(
+        "app is running",
+        _run,
         "osascript",
         "-e",
-        f'tell application "System Events" to exists process {_as_string(app_name)}',
+        f"application {_as_string(app_name)} is running",
     )
     return result.returncode == 0 and result.stdout.strip().lower() == "true"
 
@@ -116,14 +118,13 @@ def _move_to_display(win: dict[str, Any], display_id: int | None) -> None:
 def run(app_name: str, spawn_script: str = "", force: bool = False) -> None:
     display_id, space_id = _target_display_and_space()
 
-    if force and spawn_script:
-        pass
-    elif _app_is_running(app_name):
+    if not force:
         existing_win = _visible_window_on_target(app_name, display_id, space_id)
-        if existing_win and not force:
+        if existing_win:
             _focus_window(existing_win)
             return
-    else:
+
+    if not (force and spawn_script) and not _app_is_running(app_name):
         _launch_or_focus(app_name)
         return
 
