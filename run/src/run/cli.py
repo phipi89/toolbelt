@@ -1,5 +1,6 @@
 import json
 import pathlib
+import plistlib
 import subprocess
 import time
 
@@ -58,6 +59,21 @@ def _window_label(win):
     return app
 
 
+def _app_name(path):
+    info_path = path / "Contents" / "Info.plist"
+    try:
+        with info_path.open("rb") as file:
+            info = plistlib.load(file)
+    except (OSError, plistlib.InvalidFileException, TypeError, ValueError):
+        return path.stem
+
+    for key in ("CrAppModeShortcutName", "CFBundleDisplayName"):
+        value = info.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return path.stem
+
+
 def _focus_window(win):
     space_id = win.get("space")
     window_id = win.get("id")
@@ -89,7 +105,8 @@ def interactive(items, windows=None):
         if not show_windows:
             return ""
         return "\n".join(
-            f"{index} {_window_label(win)}" for index, win in enumerate(windows, start=1)
+            f"{index} {_window_label(win)}"
+            for index, win in enumerate(windows, start=1)
         )
 
     session = PromptSession(
@@ -98,7 +115,6 @@ def interactive(items, windows=None):
         key_bindings=kb,
         complete_style=CompleteStyle.MULTI_COLUMN,
         style=style,
-        bottom_toolbar=bottom_toolbar,
     )
 
     def hide_windows(event):
@@ -195,7 +211,7 @@ def main():
 
     app_names = [name for name in apps.keys() if include(name)]
 
-    action, selection = interactive(app_names, _query_current_space_windows())
+    action, selection = interactive(app_names)
     if action == "WINDOW":
         _focus_window(selection)
         return
@@ -208,7 +224,7 @@ def main():
         target = path.parent
         subprocess.run(["open", target.as_posix()])
     else:
-        app_name = path.stem
+        app_name = _app_name(path)
         script_name = "new_window.sh" if action == "NEW_WINDOW" else "manage.sh"
         window_manager = pathlib.Path.home() / "toolbelt" / "display" / script_name
         completed_process = subprocess.run([window_manager.as_posix(), app_name])
