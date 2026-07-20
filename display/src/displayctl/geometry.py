@@ -8,7 +8,9 @@ def close(a: float, b: float, tolerance: float = TOLERANCE) -> bool:
     return abs(a - b) <= tolerance
 
 
-def same_frame(a: dict[str, float], b: dict[str, float], tolerance: float = TOLERANCE) -> bool:
+def same_frame(
+    a: dict[str, float], b: dict[str, float], tolerance: float = TOLERANCE
+) -> bool:
     return (
         close(a["x"], b["x"], tolerance)
         and close(a["y"], b["y"], tolerance)
@@ -17,14 +19,18 @@ def same_frame(a: dict[str, float], b: dict[str, float], tolerance: float = TOLE
     )
 
 
-def halves(x: float, y: float, w: float, h: float) -> tuple[dict[str, float], dict[str, float]]:
+def halves(
+    x: float, y: float, w: float, h: float
+) -> tuple[dict[str, float], dict[str, float]]:
     return (
         {"x": x, "y": y, "w": w / 2, "h": h},
         {"x": x + w / 2, "y": y, "w": w / 2, "h": h},
     )
 
 
-def weighted_left(x: float, y: float, w: float, h: float) -> tuple[dict[str, float], dict[str, float]]:
+def weighted_left(
+    x: float, y: float, w: float, h: float
+) -> tuple[dict[str, float], dict[str, float]]:
     return (
         {"x": x, "y": y, "w": w * 2 / 3, "h": h},
         {"x": x + w * 2 / 3, "y": y, "w": w / 3, "h": h},

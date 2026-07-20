@@ -23,17 +23,34 @@ def _eligible(wins: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
-def matching_windows(app_name: str) -> list[dict[str, Any]]:
+def app_windows(app_name: str, wins: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    app_name_cf = app_name.casefold()
+    direct = [win for win in wins if str(win.get("app", "")).casefold() == app_name_cf]
+    if direct:
+        return direct
+
+    return aliased_app_windows(app_name, wins)
+
+
+def aliased_app_windows(
+    app_name: str, wins: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    names = _normalized(apps.candidate_app_names(app_name) | {app_name})
+    return [win for win in wins if str(win.get("app", "")).casefold() in names]
+
+
+def focusable_app_windows(
+    app_name: str, wins: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    return app_windows(app_name, _eligible(wins))
+
+
+def matching_windows(
+    app_name: str, wins: list[dict[str, Any]] | None = None
+) -> list[dict[str, Any]]:
     with timing.timed("matching windows"):
-        wins = _eligible(yabai.query_windows())
-
-        app_name_cf = app_name.casefold()
-        direct = [win for win in wins if str(win.get("app", "")).casefold() == app_name_cf]
-        if direct:
-            return direct
-
-        names = _normalized(apps.candidate_app_names(app_name))
-        return [win for win in wins if str(win.get("app", "")).casefold() in names]
+        all_wins = yabai.query_windows() if wins is None else wins
+        return focusable_app_windows(app_name, all_wins)
 
 
 def current_context() -> tuple[int | None, int | None]:
@@ -43,19 +60,24 @@ def current_context() -> tuple[int | None, int | None]:
     except subprocess.CalledProcessError:
         try:
             display = yabai.query_display()
-            return display.get("id"), None
+            return display.get("index"), None
         except subprocess.CalledProcessError:
             return None, None
 
 
-def best_window(wins: list[dict[str, Any]]) -> dict[str, Any]:
+def best_window(
+    wins: list[dict[str, Any]],
+    context: tuple[int | None, int | None] | None = None,
+) -> dict[str, Any]:
     with timing.timed("choose best window"):
-        display_id, space_id = current_context()
+        display_index, space_index = context or current_context()
 
         def score(win: dict[str, Any]) -> tuple[int, int, int]:
             return (
-                0 if space_id is not None and win.get("space") == space_id else 1,
-                0 if display_id is not None and win.get("display") == display_id else 1,
+                0 if space_index is not None and win.get("space") == space_index else 1,
+                0
+                if display_index is not None and win.get("display") == display_index
+                else 1,
                 0 if win.get("is-visible") else 1,
             )
 
@@ -63,16 +85,19 @@ def best_window(wins: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def activate_app(app_name: str) -> None:
-    subprocess.run(["open", "-a", app_name], check=False)
+    result = subprocess.run(["open", "-a", app_name], check=False)
+    if result.returncode:
+        raise SystemExit(f"failed to open {app_name}")
 
 
-def focus_window(win: dict[str, Any]) -> None:
+def focus_window(win: dict[str, Any], current_space_index: int | None = None) -> None:
     with timing.timed("focus window"):
-        space_id = win.get("space")
-        _, current_space_id = current_context()
-        if space_id is not None and not win.get("is-visible"):
-            if current_space_id != space_id:
-                yabai.focus_space(space_id)
+        space_index = win.get("space")
+        if space_index is not None and not win.get("is-visible"):
+            if current_space_index is None:
+                _, current_space_index = current_context()
+            if current_space_index != space_index:
+                yabai.focus_space(space_index)
                 time.sleep(0.1)
         yabai.focus(win["id"])
 
@@ -84,4 +109,9 @@ def run(app_name: str) -> None:
             activate_app(app_name)
             return
 
-        focus_window(best_window(wins))
+        if len(wins) == 1:
+            focus_window(wins[0])
+            return
+
+        context = current_context()
+        focus_window(best_window(wins, context), context[1])

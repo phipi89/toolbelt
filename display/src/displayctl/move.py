@@ -140,6 +140,18 @@ def _frame_split_pair(left_win: dict, right_win: dict, state: str) -> None:
         yabai.grid(right_win["id"], "20:20:10:1:9:18")
 
 
+def _set_split_layout(left_win: dict, right_win: dict, state: str) -> None:
+    grids = {
+        "half": ("1:2:0:0:1:1", "1:2:1:0:1:1"),
+        "weighted": ("1:3:0:0:2:1", "1:3:2:0:1:1"),
+        "framed_half": ("20:20:1:1:9:18", "20:20:10:1:9:18"),
+        "framed_weighted": ("20:30:1:1:19:18", "20:30:20:1:9:18"),
+    }
+    left_grid, right_grid = grids[state]
+    yabai.grid(left_win["id"], left_grid)
+    yabai.grid(right_win["id"], right_grid)
+
+
 def _eligible_windows(limit: int | None = None) -> list[dict]:
     wins = [win for win in yabai.query_windows_on_space() if yabai.eligible_window(win)]
     return wins[:limit] if limit is not None else wins
@@ -272,9 +284,7 @@ def _place_candidates(
 
 
 def _same_display(win: dict, display: dict) -> bool:
-    return win.get("display") == display.get("id") or win.get("display") == display.get(
-        "index"
-    )
+    return win.get("display") == display.get("index")
 
 
 def _corner_order(count: int) -> list[str]:
@@ -351,12 +361,9 @@ def left() -> None:
     w = display_frame["w"]
     h = frame["h"]
     left_half, _ = geometry.halves(x, y, w, h)
-    left_two_thirds, _ = geometry.weighted_left(x, y, w, h)
 
     if geometry.same_frame(frame, left_half):
         yabai.grid(win["id"], "1:3:0:0:2:1")
-    elif geometry.same_frame(frame, left_two_thirds):
-        yabai.grid(win["id"], "1:2:0:0:1:1")
     else:
         yabai.grid(win["id"], "1:2:0:0:1:1")
 
@@ -372,12 +379,9 @@ def right() -> None:
     w = display_frame["w"]
     h = frame["h"]
     _, right_half = geometry.halves(x, y, w, h)
-    _, right_one_third = geometry.weighted_left(x, y, w, h)
 
     if geometry.same_frame(frame, right_half):
         yabai.grid(win["id"], "1:3:2:0:1:1")
-    elif geometry.same_frame(frame, right_one_third):
-        yabai.grid(win["id"], "1:2:1:0:1:1")
     else:
         yabai.grid(win["id"], "1:2:1:0:1:1")
 
@@ -468,8 +472,7 @@ def cycle(target_index: int = 2) -> None:
     yabai.focus(wins[target_index - 1]["id"])
 
 
-def quad() -> None:
-    wins = _eligible_windows(limit=4)
+def _quad(wins: list[dict]) -> None:
     if not wins:
         return
 
@@ -482,10 +485,14 @@ def quad() -> None:
             yabai.grid(win["id"], grid)
 
 
+def quad() -> None:
+    _quad(_eligible_windows(limit=4))
+
+
 def tile() -> None:
     wins = _eligible_windows(limit=4)
     if len(wins) != 2:
-        quad()
+        _quad(wins)
         return
 
     x, y, w, h = _display_usable_bounds()
@@ -528,56 +535,19 @@ def split(frontmost_right: bool = False, frame: bool = False) -> None:
 
     first, second = wins[0], wins[1]
     left_win, right_win = (second, first) if frontmost_right else (first, second)
-    left_frame = left_win["frame"]
-    right_frame = right_win["frame"]
-
-    x, y, w, h = _usable_bounds_from_frames(left_frame, right_frame)
-    left_half, right_half = geometry.halves(x, y, w, h)
-    left_two_thirds, right_one_third = geometry.weighted_left(x, y, w, h)
-
-    is_half = geometry.same_frame(left_frame, left_half) and geometry.same_frame(
-        right_frame, right_half
-    )
-    is_weighted = geometry.same_frame(
-        left_frame, left_two_thirds
-    ) and geometry.same_frame(right_frame, right_one_third)
-
-    half_frame_bounds = _framed_half_bounds(left_frame)
-    framed_left_half = _grid_frame(half_frame_bounds, 20, 20, 1, 1, 9, 18)
-    framed_right_half = _grid_frame(half_frame_bounds, 20, 20, 10, 1, 9, 18)
-    is_framed_half = geometry.same_frame(
-        left_frame, framed_left_half
-    ) and geometry.same_frame(right_frame, framed_right_half)
-
-    weighted_frame_bounds = _framed_weighted_bounds(left_frame)
-    framed_left_weighted = _grid_frame(weighted_frame_bounds, 20, 30, 1, 1, 19, 18)
-    framed_right_weighted = _grid_frame(weighted_frame_bounds, 20, 30, 20, 1, 9, 18)
-    is_framed_weighted = geometry.same_frame(
-        left_frame, framed_left_weighted
-    ) and geometry.same_frame(right_frame, framed_right_weighted)
+    state = _split_state(left_win["frame"], right_win["frame"])
 
     if frame:
-        if is_half or is_framed_half:
-            yabai.grid(left_win["id"], "20:30:1:1:19:18")
-            yabai.grid(right_win["id"], "20:30:20:1:9:18")
-        elif is_weighted or is_framed_weighted:
-            yabai.grid(left_win["id"], "20:20:1:1:9:18")
-            yabai.grid(right_win["id"], "20:20:10:1:9:18")
-        else:
-            yabai.grid(left_win["id"], "20:20:1:1:9:18")
-            yabai.grid(right_win["id"], "20:20:10:1:9:18")
+        target = (
+            "framed_weighted" if state in {"half", "framed_half"} else "framed_half"
+        )
+        _set_split_layout(left_win, right_win, target)
         return
 
-    if is_half:
-        yabai.grid(left_win["id"], "1:3:0:0:2:1")
-        yabai.grid(right_win["id"], "1:3:2:0:1:1")
-    elif is_weighted:
-        yabai.grid(left_win["id"], "1:2:0:0:1:1")
-        yabai.grid(right_win["id"], "1:2:1:0:1:1")
-    else:
-        if is_framed_half:
-            yabai.grid(left_win["id"], "20:30:1:1:19:18")
-            yabai.grid(right_win["id"], "20:30:20:1:9:18")
-        else:
-            yabai.grid(left_win["id"], "1:2:0:0:1:1")
-            yabai.grid(right_win["id"], "1:2:1:0:1:1")
+    target = {
+        "half": "weighted",
+        "weighted": "half",
+        "framed_half": "framed_weighted",
+        "framed_weighted": "half",
+    }.get(state, "half")
+    _set_split_layout(left_win, right_win, target)

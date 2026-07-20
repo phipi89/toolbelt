@@ -22,6 +22,15 @@ def yabai(*args: str) -> str:
     return run("yabai", "-m", *args)
 
 
+def command(label: str, *args: str) -> None:
+    timing.time_call(
+        label,
+        subprocess.run,
+        ["yabai", "-m", *args],
+        check=True,
+    )
+
+
 def _json_query(*args: str):
     output = yabai(*args).strip()
     return json.loads(output)
@@ -50,6 +59,13 @@ def query_spaces() -> list[dict[str, Any]]:
     return _json_query("query", "--spaces")
 
 
+def query_space(selector: str | None = None) -> dict[str, Any]:
+    args = ["query", "--spaces", "--space"]
+    if selector:
+        args.append(selector)
+    return _json_query(*args)
+
+
 def eligible_window(win: dict[str, Any]) -> bool:
     return bool(
         win.get("is-visible")
@@ -64,27 +80,45 @@ def eligible_window(win: dict[str, Any]) -> bool:
 
 
 def grid(window_id: int, spec: str) -> None:
-    timing.time_call("yabai window --grid", subprocess.run, ["yabai", "-m", "window", str(window_id), "--grid", spec], check=True)
+    command("yabai window --grid", "window", str(window_id), "--grid", spec)
 
 
 def focus(window_id: int) -> None:
-    timing.time_call("yabai window --focus", subprocess.run, ["yabai", "-m", "window", str(window_id), "--focus"], check=True)
+    command("yabai window --focus", "window", str(window_id), "--focus")
 
 
-def focus_space(space_id: int) -> None:
-    timing.time_call("yabai space --focus", subprocess.run, ["yabai", "-m", "space", "--focus", str(space_id)], check=True)
+def focus_space(space_index: int) -> None:
+    command("yabai space --focus", "space", "--focus", str(space_index))
 
 
-def move_display(window_id: int, display_id: int) -> None:
-    timing.time_call("yabai window --display", subprocess.run, ["yabai", "-m", "window", str(window_id), "--display", str(display_id)], check=True)
+def move_display(window_id: int, display_index: int) -> None:
+    command(
+        "yabai window --display",
+        "window",
+        str(window_id),
+        "--display",
+        str(display_index),
+    )
 
 
 def move_abs(window_id: int, x: float, y: float) -> None:
-    timing.time_call("yabai window --move", subprocess.run, ["yabai", "-m", "window", str(window_id), "--move", f"abs:{x:g}:{y:g}"], check=True)
+    command(
+        "yabai window --move",
+        "window",
+        str(window_id),
+        "--move",
+        f"abs:{x:g}:{y:g}",
+    )
 
 
 def resize_abs(window_id: int, width: float, height: float) -> None:
-    timing.time_call("yabai window --resize", subprocess.run, ["yabai", "-m", "window", str(window_id), "--resize", f"abs:{width:g}:{height:g}"], check=True)
+    command(
+        "yabai window --resize",
+        "window",
+        str(window_id),
+        "--resize",
+        f"abs:{width:g}:{height:g}",
+    )
 
 
 def set_frame(window_id: int, frame: dict[str, float]) -> None:
@@ -93,10 +127,14 @@ def set_frame(window_id: int, frame: dict[str, float]) -> None:
 
 
 def close(window_id: int) -> None:
-    timing.time_call("yabai window --close", subprocess.run, ["yabai", "-m", "window", str(window_id), "--close"], check=True)
+    command("yabai window --close", "window", str(window_id), "--close")
 
 
-def move_space(window_id: int, space_id: int) -> None:
-    timing.time_call("yabai window --space", subprocess.run, ["yabai", "-m", "window", str(window_id), "--space", str(space_id)], check=True)
-
-
+def move_space(window_id: int, space_index: int) -> None:
+    command(
+        "yabai window --space",
+        "window",
+        str(window_id),
+        "--space",
+        str(space_index),
+    )

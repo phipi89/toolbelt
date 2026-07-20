@@ -8,14 +8,18 @@ from . import timing
 
 
 def _run(*args: str) -> str:
-    return timing.time_call(
-        " ".join(args[:2]),
-        subprocess.run,
-        args,
-        check=False,
-        text=True,
-        capture_output=True,
-    ).stdout.strip()
+    try:
+        return timing.time_call(
+            " ".join(args[:2]),
+            subprocess.run,
+            args,
+            check=False,
+            text=True,
+            capture_output=True,
+            timeout=5,
+        ).stdout.strip()
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
 
 
 def _add_name(names: set[str], value: str | None) -> None:
@@ -36,7 +40,11 @@ def _candidate_app_paths(name: str) -> list[Path]:
             seen.add(path)
             paths.append(path)
 
-    for root in (Path("/Applications"), Path("/System/Applications"), Path.home() / "Applications"):
+    for root in (
+        Path("/Applications"),
+        Path("/System/Applications"),
+        Path.home() / "Applications",
+    ):
         add(root / f"{name}.app")
 
     if not paths:
@@ -55,7 +63,7 @@ def _info_plist_names(app_path: Path) -> set[str]:
     try:
         with info_path.open("rb") as f:
             info = plistlib.load(f)
-    except Exception:
+    except (OSError, plistlib.InvalidFileException, TypeError, ValueError):
         return names
     for key in ("CFBundleDisplayName", "CFBundleName", "CFBundleExecutable"):
         _add_name(names, info.get(key))

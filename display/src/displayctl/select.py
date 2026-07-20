@@ -7,10 +7,16 @@ from . import goto, timing
 
 
 def _app_expose() -> None:
-    subprocess.run(
-        ["osascript", "-e", 'tell application "System Events" to key code 125 using control down'],
+    result = subprocess.run(
+        [
+            "osascript",
+            "-e",
+            'tell application "System Events" to key code 125 using control down',
+        ],
         check=False,
     )
+    if result.returncode:
+        raise SystemExit("failed to open App Expose")
 
 
 def run(app_name: str) -> None:
@@ -26,7 +32,8 @@ def run(app_name: str) -> None:
 
         visible_wins = [win for win in wins if win.get("is-visible")]
         if visible_wins:
-            goto.focus_window(goto.best_window(visible_wins))
+            context = goto.current_context()
+            goto.focus_window(goto.best_window(visible_wins, context), context[1])
             return
 
         goto.activate_app(app_name)

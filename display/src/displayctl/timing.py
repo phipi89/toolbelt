@@ -7,7 +7,13 @@ from contextlib import contextmanager
 from typing import Iterator
 
 
-ENABLED = bool(os.environ.get("DISPLAY_TIMING"))
+ENABLED = os.environ.get("DISPLAY_TIMING", "").casefold() not in {
+    "",
+    "0",
+    "false",
+    "no",
+    "off",
+}
 
 
 def log(label: str, start: float) -> None:

@@ -1,21 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
-
 from . import goto, timing, yabai
-
-
-def _target_space() -> dict[str, Any] | None:
-    display = yabai.query_display("mouse")
-    display_index = display["index"]
-    for space in yabai.query_spaces():
-        if (
-            space["display"] == display_index
-            and space["is-visible"]
-            and not space["is-native-fullscreen"]
-        ):
-            return space
-    return None
 
 
 def run(app_name: str) -> None:
@@ -24,15 +9,20 @@ def run(app_name: str) -> None:
         if not wins:
             return
 
-        win = goto.best_window(wins)
+        if len(wins) == 1:
+            context = (None, None)
+            win = wins[0]
+        else:
+            context = goto.current_context()
+            win = goto.best_window(wins, context)
 
-        space = _target_space()
-        if space is None:
+        space = yabai.query_space("mouse")
+        if space["is-native-fullscreen"]:
             return
 
-        if win.get("space") == space["id"] and win.get("is-visible"):
-            goto.focus_window(win)
+        if win.get("space") == space["index"] and win.get("is-visible"):
+            goto.focus_window(win, context[1])
             return
 
         yabai.move_space(win["id"], space["index"])
-        goto.focus_window({**win, "space": space["id"], "is-visible": True})
+        goto.focus_window({**win, "space": space["index"], "is-visible": True})
