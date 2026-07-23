@@ -34,21 +34,10 @@ def _app_is_running(app_name: str) -> bool:
     return result.returncode == 0 and result.stdout.strip().lower() == "true"
 
 
-def _target_display_and_space(
-    wins: list[dict[str, Any]] | None = None,
-) -> tuple[int | None, int | None]:
-    if wins is not None:
-        focused = next((win for win in wins if win.get("has-focus")), None)
-        if focused:
-            return focused.get("display"), focused.get("space")
-        try:
-            return yabai.query_display().get("index"), None
-        except subprocess.CalledProcessError:
-            return None, None
-
+def _target_display_and_space() -> tuple[int | None, int | None]:
     try:
-        win = yabai.query_window()
-        return win.get("display"), win.get("space")
+        space = yabai.query_space()
+        return space.get("display"), space.get("index")
     except subprocess.CalledProcessError:
         try:
             return yabai.query_display().get("index"), None
@@ -139,8 +128,8 @@ def _move_to_target(
 
 
 def _run_spawn(app_name: str, spawn_script: str, force: bool) -> None:
+    display_index, space_index = _target_display_and_space()
     initial_windows = yabai.query_windows()
-    display_index, space_index = _target_display_and_space(initial_windows)
 
     if not force:
         existing_win = _visible_window_on_target(
