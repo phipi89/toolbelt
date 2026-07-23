@@ -56,16 +56,32 @@ fit() { (cd "$TOOLBELT/translate" || return 1; uv run translate fit "$@";) }
 
 ## FINDER INTERACTION
 
-source "$TOOLBELT/grab/grab.sh"
+_finderctl() { (cd "$TOOLBELT/finder" || return 1; uv run finderctl "$@"); }
+finderctl() { _finderctl "$@"; }
+
+grab() {
+  if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    echo "Usage: grab"
+    echo "Changes the current working directory to the folder currently open or selected in the frontmost Finder window."
+    return 0
+  fi
+
+  local target_path
+  target_path=$(_finderctl path) || return 1
+  cd "$target_path" || return 1
+}
 
 gtouch() {
-  grab || return 1
-  if [[ $# -eq 0 ]]; then
-    touch empty.txt
-  else
-    touch "$@"
+  if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    _finderctl touch --help
+    return
   fi
+  grab || return 1
+  _finderctl touch "$@"
 }
+
+gsnap() { _finderctl snapshot "$@"; }
+check_left_in_right() { _finderctl check-left-in-right "$@"; }
 
 
 # LLMS
@@ -80,7 +96,6 @@ alias textitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/tex
 alias pytitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/textitle.py --prefix "#"'
 source "$TOOLBELT/misc/compose_mail.sh"
 source "$TOOLBELT/misc/yank-to-clipboard.sh"
-source "$TOOLBELT/misc/gsnap.sh"
 source $TOOLBELT/misc/diskusage.sh
 source $TOOLBELT/misc/eject-all.sh
 setup() { "$TOOLBELT/setup/setup.sh" "$@"; }

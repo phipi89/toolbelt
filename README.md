@@ -77,11 +77,13 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 	- `buf` (<kbd>super</kbd>+<kbd>t</kbd>) open Cot editor as text buffer.
 	- `search` (<kbd>super</kbd>+<kbd>b</kbd>) Search through spotlight indexed files.
 - `displayctl` used via keyboard shortcuts
+- `finderctl` provides Finder paths, file snapshots and cross-window checks through workflow helpers.
 - `setup save|open|list|suggest-name|edit`: save and restore current-screen window setups.
 - `clk [[start|end|break]` track working hours.
 - workflow helpers
 	- `grab`: `cd` into the directory of the frontmost finder window.
 	- `gsnap`: snapshot the selected Finder file into `snapshots/`.
+	- `check_left_in_right`: check that each filename in the left Finder folder exists in the right one.
 	- `diskusage [glob|.]` list elements sorted by file size
 	- `pytitle|textitle [title]`: copy a commented *figlet* into the clipboard.
 - requests
@@ -133,12 +135,14 @@ A *tool* is a script somewhere in this repo, exposed or directly defined in `ali
 | `snippets`     | <kbd>super</kbd>+<kbd>v</kbd>     | Paste text snippets                        |
 | `buf`          | <kbd>super</kbd>+<kbd>b</kbd>     | Cot editor text scratch buffer             |
 | `setup`        | `setup ...`                       | Save/restore/edit window setups            |
+| `finderctl`    | `finderctl ...`                   | Finder integration used by workflow tools  |
 | `clk`          | `clk ...`                         | Time tracking                              |
 | `pbdiff`       | `pbdiff`                          | Diff the clipboard entry                   |
 | `timer`        | `timer`                           | Timer                                      |
 | `grab`         | `grab`                            | `cd` into the frontmost Finder directory   |
 | `gsnap`        | `gsnap`                           | Snapshot selected Finder file              |
 | `gtouch`       | `gtouch <fname>`                  | Create file in frontmost Finder directory  |
+| `check_left_in_right` | `check_left_in_right [--depth N]` | Verify left Finder files exist on right |
 | `diskusage`    | `diskusage`                       | List directory contents sorted by size     |
 | `textitle`     | `textitle <text>`                 | Comment-prefixed figlet title to clipboard |
 | `pytitle`      | `pytitle <text>`                  | Same with `#` prefix                       |

@@ -1,0 +1,14 @@
+[project]
+name = "finderctl"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = ["displayctl"]
+
+[project.scripts]
+finderctl = "finderctl.cli:main"
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+displayctl = { path = "../display", editable = true }

@@ -1,0 +1,19 @@
+version = 1
+revision = 3
+requires-python = ">=3.13"
+
+[[package]]
+name = "displayctl"
+version = "0.1.0"
+source = { editable = "../display" }
+
+[[package]]
+name = "finderctl"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "displayctl" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "displayctl", editable = "../display" }]
