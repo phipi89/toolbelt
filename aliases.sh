@@ -9,6 +9,7 @@ source ~/toolbelt/auth.sh
 run() { (cd "$TOOLBELT/run" || return 1; uv run run;) }
 calc() { (cd "$TOOLBELT/calc" || return 1; uv run calc;) }
 snippets() { (cd "$TOOLBELT/snippets" || return 1; uv run cli "$@";) }
+facts() { "$TOOLBELT/facts/facts.sh" "$@"; }
 buf() { "$TOOLBELT/buffer/open.sh" "$@"; }
 
 

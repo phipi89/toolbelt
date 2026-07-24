@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "facts": [
+    {
+      "id": "empfindlichkeit-des-gehors-b02cfd21",
+      "created_at": "2026-07-23T13:53:35+02:00",
+      "title": "Empfindlichkeit des Gehörs",
+      "fact": "An der Hörschwelle bewegen sich die Basilarmembran und die Stereozilien um weniger als einen Nanometer.",
+      "context": "Die Schätzung der Stereozilienauslenkung wird aus dem Verhältnis zwischen der Auslenkung der Stereozilien und der Verschiebung der Basilarmembran abgeleitet. An der Hörschwelle bewegt sich die Basilarmembran nach Messungen um 0,1–1 nm. In vitro liegt die kleinste Stereozilienauslenkung, die sich im Rezeptorstrom einer Haarzelle zuverlässig nachweisen lässt, bei 2–5 nm.",
+      "tags": [
+        "hören",
+        "cochlea",
+        "biophysik"
+      ],
+      "sources": [
+        {
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1413628/"
+        }
+      ],
+      "raw_input": "In vivo, with a fully functioning cochlear amplifier, displacements of the basilar membrane are in the range 0.1–1 nm near the threshold of hearing (22). If the above ratio applied also in this situation, stereocilia deflections would be in the range 0.035–0.35 nm. These values appear quite small. For comparison, it is noted that the Brownian motion of hair bundles is on the order of 1–3 nm (23), although this comparison has limited applicability because a hair bundle driven by a weak sound stimulus is not in thermodynamic equilibrium with its surroundings. In hair cells studied in vitro, the minimum stereocilia deflection that can reliably be detected in the cell’s receptor current is 2–5 nm (24). A main function of the cochlear amplifier may, therefore, be to increase the ratio between stereocilia deflection and organ displacement.\n\nhttps://pmc.ncbi.nlm.nih.gov/articles/PMC1413628/"
+    },
+    {
+      "id": "pi-x-10-7-sekunden-a0a86a91",
+      "created_at": "2026-07-24T11:42:52+02:00",
+      "title": "π × 10^7 Sekunden",
+      "fact": "Ein Jahr entspricht näherungsweise π × 10^7 Sekunden.",
+      "context": "Genau genommen entspricht der Ausdruck 363,61 Tagen. Diese Faustregel ist nach dem Computerprogrammierer Thomas Duff als Duffs Regel bekannt. Sie ist insbesondere hilfreich, um lange Rechenzeiten in vertraute kalendarische Zeiträume umzurechnen.",
+      "tags": [
+        "zeit",
+        "schätzung",
+        "informatik",
+        "faustregeln"
+      ],
+      "sources": [
+        {
+          "reference": "https://www.johndcook.com/blog/2010/10/14/duffs-rule/"
+        }
+      ],
+      "raw_input": "Duff’s rule says that a nanocentury is about π seconds. Assuming a year is 365.25 days, there are 3,155,760,000 seconds in a century. So a nanocentury, one billionth of a century, is 3.15576 seconds, roughly π seconds.\n\nThis odd fact is surprisingly useful in back-of-the-envelope calculations. In order to determine whether something is computationally feasible, you have to go from how much work can be done in a second to how much work could be done on calendar time scales. For example, suppose some operation is going to take 10^15 steps and you can carry out 10^6 operations per second. How long would that take? Obviously 10^9 seconds, but how long is that in familiar units of time? According to Duff’s rule it’s about a third of a century so about 30 years.\n\nSince the square root of 10 is approximately π, you could say there are about square root of 10 seconds in a nanocentury. In fact, the square root of 10 is 3.162 and so it’s closer to the number of seconds in a nanocentury than π is. The advantage to square root of 10 is that it is exactly half an order of magnitude, 10^1/2. So you could say a century is 9.5 orders of magnitude longer than a second, or a year is 7.5 orders of magnitude longer than a second. Or perhaps more memorably, a year is about 30 megaseconds.\n\nIf you interpret mega as 2^20 rather than 10^6 this approximation gets even better. Technically, this would be 30 mebiseconds. SI distinguishes mega = 10^6 from mebi = 2^20, though the latter isn’t widely used.\n\nI wrote briefly about Duff’s rule in the post Three rules of thumb. That post also includes a video of Grace Hopper explaining her rule of thumb that light travels about one foot in a nanosecond.\n\nhttps://www.johndcook.com/blog/2010/10/14/duffs-rule/"
+    },
+    {
+      "id": "randen-krautstiel-und-rube-af10f22d",
+      "created_at": "2026-07-24T11:42:52+02:00",
+      "title": "Randen, Krautstiel und Rübe",
+      "fact": "Randen und Mangold sind verschiedene Kulturformen derselben Art, der Gemeinen Rübe (Beta vulgaris).",
+      "context": "Auch Futter- und Zuckerrüben gehören zur gleichen Art, sind aber andere Kulturformen. Im Englischen heißt die Futterrübe mangelwurzel oder mangold wurzel, Mangold hingegen chard oder Swiss chard; woher das Swiss stammt, ist unklar. Chard kommt vom französischen carde und hat damit die gleiche etymologische Wurzel wie Kardy, bezeichnet biologisch aber etwas anderes. Eine weitere Bezeichnung für die Futterrübe ist scarcity root, was anscheinend auf einer Umdeutung des deutschen Mangold zu Mangel beruht. Mangold ist die älteste Kulturform und wird seit Tausenden von Jahren angebaut. Auch Randen, Futterrüben und Zuckerrüben gehören zur gleichen Art; ursprünglich wurden wohl hauptsächlich die Blätter gegessen. Vermutlich züchteten die Römer Formen mit Pfahlwurzeln, die seither ebenfalls gegessen werden.",
+      "tags": [
+        "gemüse",
+        "botanik",
+        "etymologie"
+      ],
+      "sources": [
+        {
+          "reference": "https://de.wikipedia.org/wiki/Rote_Bete"
+        },
+        {
+          "reference": "https://en.wikipedia.org/wiki/Beetroot"
+        },
+        {
+          "reference": "https://en.wikipedia.org/wiki/Chard"
+        },
+        {
+          "reference": "http://www.theoldfoodie.com/2006/06/scarcity-root.html"
+        },
+        {
+          "reference": "https://en.wiktionary.org/wiki/mangelwurzel"
+        }
+      ],
+      "raw_input": "https://de.wikipedia.org/wiki/Rote_Bete\n\nDie Rote Bete, auch Rote Beete (von lateinisch beta, Rübe, im 17. Jahrhundert aus dem Niederdeutschen übernommen) oder Rote Rübe, in der Schweiz Randen, in einigen Teilen Österreichs, Bayerns und Südbadens auch Rahne genannt, ist eine Kulturform der Rübe und gehört zur Familie der Fuchsschwanzgewächse. Alle Kulturrüben werden heute in der Unterart Beta vulgaris subsp. vulgaris zusammengefasst, die Rote Bete zählt zur Conditiva-Gruppe.\n\nDie Rote Bete ist wie die Zuckerrübe und der Mangold eine Kulturform der Gemeinen Rübe (Beta vulgaris subsp. vulgaris), die weiter von der wilden Rübe oder der Wildbete abstammt. Die inzwischen gleichmäßige rote Farbe der Rübe ist ein Resultat der Weiterveredelung im 19. und 20. Jahrhundert. Räumlich hat sie ihren Ursprung im Mittelmeerraum, wahrscheinlich in Nordafrika, und kam mit den Römern nach Mitteleuropa.\n\nhttps://en.wikipedia.org/wiki/Beetroot\n\nThe domestication of beetroot can be traced to the emergence of an allele that enables biennial harvesting of leaves and taproot. Beetroot was domesticated in the ancient Middle East, primarily for their greens, and were grown by the Ancient Egyptians, Greeks, and Romans. By the Roman era, it is thought that they were also cultivated for their roots. From the Middle Ages, beetroot was used to treat various conditions, especially illnesses relating to digestion and the blood.\n\nhttps://en.wikipedia.org/wiki/Chard\n\nThe word chard descends from the 14th-century French carde, from Latin carduus meaning artichoke thistle, or cardoon which also includes the artichoke.\n\nThe origin of the adjective Swiss is unclear. Some attribute the name to it having been first described by a Swiss botanist, either Gaspard Bauhin or Karl Koch, although the latter was German, not Swiss. Chard is used in Swiss cuisine, for example in the traditional dish capuns from the canton of Grisons.\n\nhttp://www.theoldfoodie.com/2006/06/scarcity-root.html\n\nThe treatise was undoubtedly that of the Abbe de Commerell, who wrote the first known description in 1787 of a variety of yellow beet that was proving very useful as a fodder crop in the Rhineland. The original name mangold wurzel, or root of the beet, underwent a transformation to mangel wurzel, meaning scarcity root, which was appropriate as the plant could thrive when other roots and vegetables failed and forage was scarce.\n\nhttps://en.wiktionary.org/wiki/mangelwurzel\n\nFrom German Mangold (chard) + Wurzel (root), with the first part reinterpreted as Mangel, whence the archaic English name root of scarcity."
+    }
+  ]
+}
