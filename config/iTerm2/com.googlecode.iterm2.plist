@@ -2940,7 +2940,7 @@
 			<key>Columns</key>
 			<integer>60</integer>
 			<key>Command</key>
-			<string>/bin/zsh /Users/philippaebischer/toolbelt/run/run.sh</string>
+			<string>zsh -lic "$HOME/toolbelt/run/run.sh"</string>
 			<key>Cursor Boost</key>
 			<real>0.0</real>
 			<key>Cursor Color</key>
@@ -3524,7 +3524,7 @@
 			<key>Right Option Key Sends</key>
 			<integer>0</integer>
 			<key>Rows</key>
-			<integer>16</integer>
+			<integer>18</integer>
 			<key>Screen</key>
 			<integer>-2</integer>
 			<key>Scrollback Lines</key>
