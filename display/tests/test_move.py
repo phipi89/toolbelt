@@ -88,6 +88,17 @@ class MoveTests(unittest.TestCase):
         query_window.assert_not_called()
         grid.assert_called_once_with(10, "100:100:5:5:90:90")
 
+    def test_reduce_places_target_in_bottom_right(self) -> None:
+        win = {"id": 10}
+
+        with (
+            patch.object(move, "_target_window", return_value=win),
+            patch.object(move.yabai, "grid") as grid,
+        ):
+            move.reduce()
+
+        grid.assert_called_once_with(10, "10:10:7:7:3:3")
+
     def test_split_uses_shared_state_transition(self) -> None:
         left = {"id": 10, "frame": {"x": 0}}
         right = {"id": 20, "frame": {"x": 100}}

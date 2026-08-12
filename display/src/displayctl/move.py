@@ -417,7 +417,7 @@ def right() -> None:
 
 def reduce() -> None:
     win = _target_window()
-    yabai.grid(win["id"], "10:10:0:7:3:3")
+    yabai.grid(win["id"], "10:10:7:7:3:3")
 
 
 def _same_horizontal_percent(
