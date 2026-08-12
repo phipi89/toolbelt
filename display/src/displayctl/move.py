@@ -1,6 +1,35 @@
 from __future__ import annotations
 
+import json
+import subprocess
+from typing import Any
+
 from . import geometry, yabai
+
+
+def _hotkey_window(win: dict[str, Any]) -> bool:
+    return bool(
+        win.get("is-visible")
+        and win.get("is-sticky")
+        and win.get("is-floating")
+        and (win.get("level") or 0) > 0
+        and win.get("role") == "AXWindow"
+        and win.get("subrole") == "AXSystemDialog"
+        and win.get("can-move")
+        and win.get("can-resize")
+    )
+
+
+def _target_window(space_windows: list[dict] | None = None) -> dict:
+    if space_windows is None:
+        try:
+            space_windows = yabai.query_windows_on_space()
+        except (OSError, subprocess.CalledProcessError, json.JSONDecodeError):
+            space_windows = []
+    hotkey_windows = [win for win in space_windows if _hotkey_window(win)]
+    if hotkey_windows:
+        return max(hotkey_windows, key=lambda win: win.get("level") or 0)
+    return yabai.query_window()
 
 
 def _usable_bounds_from_frames(
@@ -351,7 +380,7 @@ def _place_by_nearest_slot(
 
 
 def left() -> None:
-    win = yabai.query_window()
+    win = _target_window()
     display = yabai.query_display()
     display_frame = display["frame"]
     frame = win["frame"]
@@ -369,7 +398,7 @@ def left() -> None:
 
 
 def right() -> None:
-    win = yabai.query_window()
+    win = _target_window()
     display = yabai.query_display()
     display_frame = display["frame"]
     frame = win["frame"]
@@ -387,7 +416,7 @@ def right() -> None:
 
 
 def reduce() -> None:
-    win = yabai.query_window()
+    win = _target_window()
     yabai.grid(win["id"], "10:10:0:7:3:3")
 
 
@@ -402,7 +431,12 @@ def _same_horizontal_percent(
 
 
 def center(size: float | None = None, reverse: bool = False) -> None:
-    win = yabai.query_window()
+    try:
+        space_windows = yabai.query_windows_on_space()
+    except (OSError, subprocess.CalledProcessError, json.JSONDecodeError):
+        space_windows = []
+
+    win = _target_window(space_windows)
     display = yabai.query_display()
     display_frame = display["frame"]
     frame = win["frame"]
@@ -436,7 +470,7 @@ def center(size: float | None = None, reverse: bool = False) -> None:
 
 
 def place() -> None:
-    win = yabai.query_window()
+    win = _target_window()
     display = yabai.query_display()
     display_frame = display["frame"]
     bounds = (
