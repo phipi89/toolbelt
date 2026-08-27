@@ -460,6 +460,13 @@ def credited_total_for_day(db, d):
     return work_total_for_day(db, d) + timedelta(minutes=pad_minutes_for_day(db, d))
 
 
+def active_session_on_day(db, d):
+    sess = current_session(db)
+    if not sess:
+        return False
+    return s_to_dt(sess["start"]).date() <= d <= now().date()
+
+
 def overlapping_work_session(db, start, end):
     for sess in db["sessions"]:
         if not is_work_session(sess):
@@ -709,6 +716,9 @@ def analysis_data(db, start_day, end_day, config):
         worked = daily[d].total_seconds() / 3600.0
         if d.isoformat() in holidays:
             expected = 0.0
+        elif d == now_ts.date() and active_session_on_day(db, d):
+            frac = day_completion_fraction(now_ts, median_start, median_end)
+            expected = day_hours * frac
         elif worked > threshold_hours:
             if d == now_ts.date():
                 frac = day_completion_fraction(now_ts, median_start, median_end)

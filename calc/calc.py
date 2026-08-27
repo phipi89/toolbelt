@@ -1,7 +1,32 @@
+import os
+import subprocess
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 from IPython import embed
+from IPython import get_ipython
 from numpy import *
 from traitlets.config import Config
+
+
+def closing():
+    """Signal the wrapper to replace this calculator session."""
+    Path(os.environ["CALC_RESTART_FILE"]).touch()
+    subprocess.run(
+        [
+            "/usr/bin/osascript",
+            "-e",
+            """
+            tell application "iTerm2"
+              tell current window
+                hide hotkey window
+              end tell
+            end tell
+            """,
+        ],
+        check=False,
+    )
+    get_ipython().ask_exit()
 
 
 def main():

@@ -2940,7 +2940,7 @@
 			<key>Columns</key>
 			<integer>60</integer>
 			<key>Command</key>
-			<string>zsh -lic "$HOME/toolbelt/run/run.sh"</string>
+			<string>/bin/zsh -c '"$HOME/toolbelt/run/run.sh"'</string>
 			<key>Cursor Boost</key>
 			<real>0.0</real>
 			<key>Cursor Color</key>
@@ -3050,6 +3050,13 @@
 			</array>
 			<key>Keyboard Map</key>
 			<dict>
+				<key>0x77-0x100000-0x0</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x15 0x63 0x6c 0x6f 0x73 0x69 0x6e 0x67 0x0d</string>
+				</dict>
 				<key>0x2a-0x200000</key>
 				<dict>
 					<key>Action</key>
@@ -3817,7 +3824,7 @@
 			<key>Columns</key>
 			<integer>80</integer>
 			<key>Command</key>
-			<string>zsh -lic "$HOME/toolbelt/calc/run.sh"</string>
+			<string>/bin/zsh -c '"$HOME/toolbelt/calc/run.sh"'</string>
 			<key>Cursor Boost</key>
 			<real>0.0</real>
 			<key>Cursor Color</key>
@@ -3927,6 +3934,13 @@
 			</array>
 			<key>Keyboard Map</key>
 			<dict>
+				<key>0x77-0x100000-0x0</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x03 0x63 0x6c 0x6f 0x73 0x69 0x6e 0x67 0x28 0x29 0x0d</string>
+				</dict>
 				<key>0x2a-0x200000</key>
 				<dict>
 					<key>Action</key>
@@ -4685,7 +4699,7 @@
 			<key>Columns</key>
 			<integer>70</integer>
 			<key>Command</key>
-			<string>zsh -lic "$HOME/toolbelt/snippets/run.sh"</string>
+			<string>/bin/zsh -c '"$HOME/toolbelt/snippets/run.sh"'</string>
 			<key>Cursor Boost</key>
 			<real>0.0</real>
 			<key>Cursor Color</key>
@@ -4795,6 +4809,13 @@
 			</array>
 			<key>Keyboard Map</key>
 			<dict>
+				<key>0x77-0x100000-0x0</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x15 0x63 0x6c 0x6f 0x73 0x69 0x6e 0x67 0x0d</string>
+				</dict>
 				<key>0x2a-0x200000</key>
 				<dict>
 					<key>Action</key>
@@ -5553,7 +5574,7 @@
 			<key>Columns</key>
 			<integer>150</integer>
 			<key>Command</key>
-			<string>zsh -lic "$HOME/toolbelt/layout/move/center.sh; $HOME/toolbelt/search/run.sh"</string>
+			<string>/bin/zsh -c '"$HOME/toolbelt/search/run.sh"'</string>
 			<key>Cursor Boost</key>
 			<real>0.0</real>
 			<key>Cursor Color</key>
@@ -5663,6 +5684,13 @@
 			</array>
 			<key>Keyboard Map</key>
 			<dict>
+				<key>0x77-0x100000-0x0</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x15 0x63 0x6c 0x6f 0x73 0x69 0x6e 0x67 0x0d</string>
+				</dict>
 				<key>0x2a-0x200000</key>
 				<dict>
 					<key>Action</key>

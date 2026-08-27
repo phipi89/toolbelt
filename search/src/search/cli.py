@@ -18,6 +18,30 @@ from prompt_toolkit.styles import Style
 
 from . import mdfind
 
+RESTART_ENV = "SEARCH_RESTART_FILE"
+CLOSING = "closing"
+HIDE_HOTKEY_WINDOW = """
+tell application "iTerm2"
+  tell current window
+    hide hotkey window
+  end tell
+end tell
+"""
+
+
+def _hide_hotkey_window():
+    if RESTART_ENV not in os.environ:
+        return
+    subprocess.run(
+        ["/usr/bin/osascript", "-e", HIDE_HOTKEY_WINDOW], check=False
+    )
+
+
+def _request_restart():
+    restart_file = os.environ.get(RESTART_ENV)
+    if restart_file:
+        Path(restart_file).touch()
+
 
 _IGNORED_SEARCH_DIRS = {
     ".cache",
@@ -615,6 +639,10 @@ def interactive(entries, refresh_interval, load_entries):
     def submit_buffer(event, reveal=False):
         buffer = event.app.current_buffer
         query = buffer.text.strip()
+        if query == CLOSING and RESTART_ENV in os.environ:
+            completer.cancel_search()
+            event.app.exit(result=CLOSING)
+            return
         if query.startswith('"'):
             state = buffer.complete_state
             if state and state.current_completion:
@@ -736,6 +764,8 @@ def _select_path(args, show_title=True):
             config["recent_days"],
         ),
     )
+    if selection == CLOSING and RESTART_ENV in os.environ:
+        return CLOSING, False
     if not found:
         raise SystemExit(f"Not found: {selection}")
     return selection, reveal
@@ -775,11 +805,18 @@ def main():
     selection, reveal = _select_path(args)
     if selection is None:
         return
+    if selection == CLOSING:
+        _hide_hotkey_window()
+        _request_restart()
+        return
+
+    _hide_hotkey_window()
     if reveal:
         _reveal_in_finder(selection)
     else:
         _open_in_finder(selection)
     print(selection)
+    _request_restart()
 
 
 def goto_main():

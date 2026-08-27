@@ -15,6 +15,29 @@ from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.shortcuts import CompleteStyle
 from prompt_toolkit.styles import Style
 
+RESTART_ENV = "SNIPPETS_RESTART_FILE"
+HIDE_HOTKEY_WINDOW = """
+tell application "iTerm2"
+  tell current window
+    hide hotkey window
+  end tell
+end tell
+"""
+
+
+def _hide_hotkey_window():
+    if RESTART_ENV not in os.environ:
+        return
+    subprocess.run(
+        ["/usr/bin/osascript", "-e", HIDE_HOTKEY_WINDOW], check=False
+    )
+
+
+def _request_restart():
+    restart_file = os.environ.get(RESTART_ENV)
+    if restart_file:
+        pathlib.Path(restart_file).touch()
+
 
 def normalize(text):
     return "".join(ch for ch in text.lower() if ch.isalnum())
@@ -128,6 +151,9 @@ def interactive(completer):
     @kb.add("enter")
     def _(event):
         buf = event.app.current_buffer
+        if buf.text.strip() == "closing":
+            event.app.exit(result="closing")
+            return
         if not buf.text.strip():
             buf.validate_and_handle()
             return
@@ -286,12 +312,19 @@ def main():
 
     completer = DedupAliasCompleter(list(completion_to_key.keys()), completion_to_key)
     selection = interactive(completer)
+    if selection == "closing":
+        _hide_hotkey_window()
+        _request_restart()
+        return
+
     resolved = completion_to_key.get(selection) or resolve_selection(
         selection, snippets
     )
 
     if resolved == "edit":
+        _hide_hotkey_window()
         subprocess.run(["open", str(shared_yaml_path)])
+        _request_restart()
         return
 
     if resolved in snippets:
@@ -299,7 +332,9 @@ def main():
         pyperclip.copy(content)
         print(f"Copied to clipboard!")
 
-        if args.close:
+        if RESTART_ENV in os.environ:
+            _hide_hotkey_window()
+        elif args.close:
             close_cmd = (
                 'tell application "System Events" to keystroke "w" using {command down}'
             )
@@ -314,6 +349,7 @@ def main():
             'tell application "System Events" to keystroke "v" using {command down}'
         )
         subprocess.run(["osascript", "-e", paste_cmd])
+        _request_restart()
         return
 
     print("❌ Selection not found.")

@@ -1,4 +1,5 @@
 import json
+import os
 import pathlib
 import plistlib
 import subprocess
@@ -21,6 +22,29 @@ header = r"""
                       `-/.:::::::.\-'
                        `-----------'
 """
+
+RESTART_ENV = "RUN_RESTART_FILE"
+HIDE_HOTKEY_WINDOW = """
+tell application "iTerm2"
+  tell current window
+    hide hotkey window
+  end tell
+end tell
+"""
+
+
+def _hide_hotkey_window():
+    if RESTART_ENV not in os.environ:
+        return
+    subprocess.run(
+        ["/usr/bin/osascript", "-e", HIDE_HOTKEY_WINDOW], check=False
+    )
+
+
+def _request_restart():
+    restart_file = os.environ.get(RESTART_ENV)
+    if restart_file:
+        pathlib.Path(restart_file).touch()
 
 
 def _query_current_space_windows():
@@ -136,6 +160,9 @@ def interactive(items, windows=None):
     @kb.add("enter")
     def _(event):
         b = event.app.current_buffer
+        if b.text.strip() == "closing":
+            event.app.exit(result=("CLOSING", None))
+            return
         accept_best_completion(b)
         b.validate_and_handle()
 
@@ -212,14 +239,22 @@ def main():
     app_names = [name for name in apps.keys() if include(name)]
 
     action, selection = interactive(app_names)
+    if action == "CLOSING":
+        _hide_hotkey_window()
+        _request_restart()
+        return
+
     if action == "WINDOW":
+        _hide_hotkey_window()
         _focus_window(selection)
+        _request_restart()
         return
 
     if selection not in apps:
         raise SystemExit(f"Not found: {selection}")
 
     path = apps[selection]
+    _hide_hotkey_window()
     if action == "PARENT":
         target = path.parent
         subprocess.run(["open", target.as_posix()])
@@ -232,6 +267,7 @@ def main():
             print(f"failed to open {app_name}")
             time.sleep(5)
             subprocess.run(["open", path.as_posix()])
+    _request_restart()
 
 
 if __name__ == "__main__":
