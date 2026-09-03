@@ -320,7 +320,7 @@
                                     "key_code": "t",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "shell_command": "$HOME/toolbelt/buffer/open.sh" }],
+                                "to": [{ "shell_command": "$HOME/toolbelt/prose/open.sh" }],
                                 "type": "basic"
                             },
                             {

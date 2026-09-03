@@ -74,8 +74,8 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 	- `run` (<kbd>super</kbd>+<kbd>a</kbd>) open apps.
 	- `calc` (<kbd>super</kbd>+<kbd>c</kbd>) iPython with NumPy namespace loaded.
 	- `snipptes` (<kbd>super</kbd>+<kbd>v</kbd>) select and paste text snippets.
-	- `buf` (<kbd>super</kbd>+<kbd>t</kbd>) open Cot editor as text buffer.
-	- `prose` opens a minimal autosaving serif text editor; `prose --recent` reopens recently closed documents.
+	- `buf` opens CotEditor as a text buffer.
+	- `prose` (<kbd>super</kbd>+<kbd>t</kbd>) opens a minimal autosaving serif text editor; `prose --recent` reopens recently closed documents.
 	- `search` (<kbd>super</kbd>+<kbd>b</kbd>) Search through spotlight indexed files.
 - `displayctl` used via keyboard shortcuts
 - `finderctl` provides Finder paths, file snapshots and cross-window checks through workflow helpers.
@@ -134,8 +134,8 @@ A *tool* is a script somewhere in this repo, exposed or directly defined in `ali
 | `calc`         | <kbd>super</kbd>+<kbd>c</kbd>     | iPython with NumPy loaded                  |
 | `search`       | <kbd>super</kbd>+<kbd>b</kbd>     | Fuzzy file search through mdfind           |
 | `snippets`     | <kbd>super</kbd>+<kbd>v</kbd>     | Paste text snippets                        |
-| `buf`          | <kbd>super</kbd>+<kbd>b</kbd>     | Cot editor text scratch buffer             |
-| `prose`        | `prose [--recent]`                | Minimal autosaving serif text editor       |
+| `buf`          | `buf`                             | Cot editor text scratch buffer             |
+| `prose`        | <kbd>super</kbd>+<kbd>t</kbd>     | Minimal autosaving serif text editor       |
 | `setup`        | `setup ...`                       | Save/restore/edit window setups            |
 | `finderctl`    | `finderctl ...`                   | Finder integration used by workflow tools  |
 | `clk`          | `clk ...`                         | Time tracking                              |
