@@ -96,6 +96,8 @@ ask(){ opencode run "$*"; }
 timer() { clear && "$TOOLBELT/misc/timer.py"; }
 alias textitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/textitle.py'
 alias pytitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/textitle.py --prefix "#"'
+qrcode() { "$TOOLBELT/misc/qr.py" "$@"; }
+pbqr() { qrcode --clipboard "$@"; }
 source "$TOOLBELT/misc/compose_mail.sh"
 source "$TOOLBELT/misc/yank-to-clipboard.sh"
 source $TOOLBELT/misc/diskusage.sh

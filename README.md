@@ -87,6 +87,7 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 	- `check_left_in_right`: check that each filename in the left Finder folder exists in the right one.
 	- `diskusage [glob|.]` list elements sorted by file size
 	- `pytitle|textitle [title]`: copy a commented *figlet* into the clipboard.
+	- `qrcode <text> --out <file>` creates a transparent PNG; `pbqr <text>` copies one to the clipboard.
 - requests
 	- `ten|fen|tfr|ffr|tit|fit [word]`: request translation via PONS.
 	- `ask [question]` sends a one-off question to opencode.
@@ -140,6 +141,8 @@ A *tool* is a script somewhere in this repo, exposed or directly defined in `ali
 | `finderctl`    | `finderctl ...`                   | Finder integration used by workflow tools  |
 | `clk`          | `clk ...`                         | Time tracking                              |
 | `pbdiff`       | `pbdiff`                          | Diff the clipboard entry                   |
+| `qrcode`       | `qrcode <text> --out <file>`      | Save a transparent QR code PNG             |
+| `pbqr`         | `pbqr <text>`                     | Copy a QR code image to the clipboard       |
 | `timer`        | `timer`                           | Timer                                      |
 | `grab`         | `grab`                            | `cd` into the frontmost Finder directory   |
 | `gsnap`        | `gsnap`                           | Snapshot selected Finder file              |
