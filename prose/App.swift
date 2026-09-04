@@ -97,26 +97,6 @@ private final class ProseTextView: NSTextView {
         }
     }
 
-    override func drawInsertionPoint(
-        in rect: NSRect,
-        color: NSColor,
-        turnedOn flag: Bool
-    ) {
-        let scale = window?.backingScaleFactor ?? 2
-        let height = rect.height * 0.8
-        let caretRect = NSRect(
-            x: rect.midX,
-            y: rect.midY - height / 2,
-            width: 1 / scale,
-            height: height
-        )
-        super.drawInsertionPoint(
-            in: caretRect,
-            color: color.withAlphaComponent(1),
-            turnedOn: flag
-        )
-    }
-
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
         guard event.modifierFlags.intersection(.deviceIndependentFlagsMask).contains(.command),
               let characters = event.charactersIgnoringModifiers
@@ -352,6 +332,9 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
 
     private func toggleMonospace() {
         isMonospaced.toggle()
+        if isMonospaced {
+            isItalic = false
+        }
         applyTypography()
         updateLayout()
     }
@@ -383,7 +366,7 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
         if isMonospaced {
             regularFont = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
         } else {
-            let fontName = isItalic ? "AGaramondPro-Italic" : "AGaramondPro-Regular"
+            let fontName = isItalic ? "EBGaramond-Italic" : "EBGaramond-Regular"
             regularFont = NSFont(name: fontName, size: fontSize)
                 ?? NSFont.systemFont(ofSize: fontSize)
         }
@@ -392,7 +375,8 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
             : regularFont
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = isMonospaced ? .left : .center
-        let lineHeight = ceil(font.ascender - font.descender + font.leading) * 1.2
+        let lineHeightScale: CGFloat = isMonospaced ? 1.2 : 1.05
+        let lineHeight = ceil(font.ascender - font.descender + font.leading) * lineHeightScale
         paragraph.minimumLineHeight = lineHeight
         paragraph.maximumLineHeight = lineHeight
 

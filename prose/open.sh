@@ -11,7 +11,12 @@ MIGRATION_MARKER="$PROSE_DIR/.recents-v3"
 APP="$PROSE_DIR/Prose.app"
 SOURCE="$TOOLBELT/prose/App.swift"
 INFO_PLIST="$TOOLBELT/prose/Info.plist"
+FONTS_DIR="$TOOLBELT/prose/Fonts"
+FONT_REGULAR="$FONTS_DIR/EBGaramond-VariableFont_wght.ttf"
+FONT_ITALIC="$FONTS_DIR/EBGaramond-Italic-VariableFont_wght.ttf"
+FONT_LICENSE="$FONTS_DIR/OFL.txt"
 BINARY="$APP/Contents/MacOS/Prose"
+BUNDLED_FONTS="$APP/Contents/Resources/Fonts"
 
 usage() {
   cat <<'EOF'
@@ -24,11 +29,16 @@ EOF
 }
 
 build_app() {
-  if [ ! -x "$BINARY" ] || [ "$SOURCE" -nt "$BINARY" ] || [ "$INFO_PLIST" -nt "$APP/Contents/Info.plist" ]; then
-    mkdir -p "$APP/Contents/MacOS"
+  if [ ! -x "$BINARY" ] || [ "$SOURCE" -nt "$BINARY" ] || [ "$INFO_PLIST" -nt "$APP/Contents/Info.plist" ] ||
+     [ "$FONT_REGULAR" -nt "$BINARY" ] || [ "$FONT_ITALIC" -nt "$BINARY" ] ||
+     [ ! -f "$BUNDLED_FONTS/EBGaramond-VariableFont_wght.ttf" ] ||
+     [ ! -f "$BUNDLED_FONTS/EBGaramond-Italic-VariableFont_wght.ttf" ] ||
+     [ ! -f "$BUNDLED_FONTS/OFL.txt" ]; then
+    mkdir -p "$APP/Contents/MacOS" "$BUNDLED_FONTS"
     swiftc -O -framework AppKit "$SOURCE" -o "$BINARY.new"
     mv "$BINARY.new" "$BINARY"
     cp "$INFO_PLIST" "$APP/Contents/Info.plist"
+    cp "$FONT_REGULAR" "$FONT_ITALIC" "$FONT_LICENSE" "$BUNDLED_FONTS/"
   fi
 }
 
