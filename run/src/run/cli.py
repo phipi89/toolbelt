@@ -3,7 +3,6 @@ import os
 import pathlib
 import plistlib
 import subprocess
-import time
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
@@ -265,7 +264,6 @@ def main():
         completed_process = subprocess.run([window_manager.as_posix(), app_name])
         if completed_process.returncode:
             print(f"failed to open {app_name}")
-            time.sleep(5)
             subprocess.run(["open", path.as_posix()])
     _request_restart()
 
