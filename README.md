@@ -32,7 +32,7 @@ This mapping is configured per app in `config/display/setup.yaml`.
 
 #### Tiling
 - <kbd>super</kbd>+<kbd>,</kbd>/<kbd>.</kbd>: tile left/right (cycles 50:50 ↔ 65:35)
-- <kbd>super</kbd>+<kbd>l</kbd>: almost maximise (cycles 90% → 100% → 60%)
+- <kbd>super</kbd>+<kbd>l</kbd>: grow centered size by 10% up to 100%; add <kbd>shift</kbd> to shrink down to 10%
 - <kbd>super</kbd>+<kbd>-</kbd>: almost minimise to lower left
 - <kbd>super</kbd>+<kbd>ö</kbd>: shift windows to minimise overlap
 - <kbd>super</kbd>+<kbd>ü</kbd>: split or quad-tile windows.

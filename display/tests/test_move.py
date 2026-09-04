@@ -88,6 +88,49 @@ class MoveTests(unittest.TestCase):
         query_window.assert_not_called()
         grid.assert_called_once_with(10, "100:100:5:5:90:90")
 
+    def test_center_steps_sizes_in_both_directions(self) -> None:
+        display = {
+            "id": 1,
+            "index": 1,
+            "frame": {"x": 0, "y": 0, "w": 1000, "h": 800},
+        }
+        transitions = {
+            False: {
+                None: 90,
+                **{size: min(size + 10, 100) for size in range(10, 101, 10)},
+            },
+            True: {
+                None: 80,
+                **{size: max(size - 10, 10) for size in range(10, 101, 10)},
+            },
+        }
+
+        for reverse, sizes in transitions.items():
+            for current, target in sizes.items():
+                with self.subTest(reverse=reverse, current=current):
+                    size = 73 if current is None else current
+                    frame = {
+                        "x": (100 - size) * 5,
+                        "y": 0,
+                        "w": size * 10,
+                        "h": 800,
+                    }
+                    win = {"id": 10, "frame": frame}
+                    start = (100 - target) / 2
+                    expected = f"100:100:{start:g}:{start:g}:{target}:{target}"
+
+                    with (
+                        patch.object(
+                            move.yabai, "query_windows_on_space", return_value=[win]
+                        ),
+                        patch.object(move, "_target_window", return_value=win),
+                        patch.object(move.yabai, "query_display", return_value=display),
+                        patch.object(move.yabai, "grid") as grid,
+                    ):
+                        move.center(reverse=reverse)
+
+                    grid.assert_called_once_with(10, expected)
+
     def test_reduce_places_target_in_bottom_right(self) -> None:
         win = {"id": 10}
 

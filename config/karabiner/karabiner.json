@@ -64,6 +64,14 @@
                             },
                             {
                                 "from": {
+                                    "key_code": "l",
+                                    "modifiers": { "mandatory": ["right_command", "shift"] }
+                                },
+                                "to": [{ "shell_command": "$HOME/toolbelt/display/move/center.sh --reverse" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
                                     "key_code": "slash",
                                     "modifiers": {
                                         "mandatory": ["right_command"],

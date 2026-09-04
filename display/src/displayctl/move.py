@@ -448,25 +448,29 @@ def center(size: float | None = None, reverse: bool = False) -> None:
         yabai.grid(win["id"], f"100:100:{start:g}:{start:g}:{size:g}:{size:g}")
         return
 
-    if reverse:
-        if _same_horizontal_percent(frame, display_frame, 0.20, 0.60):
-            yabai.grid(win["id"], "1:1:0:0:1:1")
-        elif _same_horizontal_percent(frame, display_frame, 0.00, 1.00):
-            yabai.grid(win["id"], "100:100:5:5:90:90")
-        elif _same_horizontal_percent(frame, display_frame, 0.05, 0.90):
-            yabai.grid(win["id"], "100:100:20:20:60:60")
-        else:
-            yabai.grid(win["id"], "100:100:20:20:60:60")
-        return
-
-    if _same_horizontal_percent(frame, display_frame, 0.05, 0.90):
-        yabai.grid(win["id"], "1:1:0:0:1:1")
-    elif _same_horizontal_percent(frame, display_frame, 0.00, 1.00):
-        yabai.grid(win["id"], "100:100:20:20:60:60")
-    elif _same_horizontal_percent(frame, display_frame, 0.20, 0.60):
-        yabai.grid(win["id"], "100:100:5:5:90:90")
+    sizes = tuple(range(10, 101, 10))
+    current = next(
+        (
+            candidate
+            for candidate in sizes
+            if _same_horizontal_percent(
+                frame,
+                display_frame,
+                (100 - candidate) / 200,
+                candidate / 100,
+            )
+        ),
+        None,
+    )
+    if current is None:
+        target = 80 if reverse else 90
     else:
-        yabai.grid(win["id"], "100:100:5:5:90:90")
+        step = -1 if reverse else 1
+        target_index = max(0, min(sizes.index(current) + step, len(sizes) - 1))
+        target = sizes[target_index]
+
+    start = (100 - target) / 2
+    yabai.grid(win["id"], f"100:100:{start:g}:{start:g}:{target}:{target}")
 
 
 def place() -> None:
