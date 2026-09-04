@@ -9,6 +9,16 @@ from numpy import *
 from traitlets.config import Config
 
 
+def percentage(a, b):
+    for value, reference in ((a, b), (b, a)):
+        if reference == 0:
+            print(f"{value:g} is undefined as a percentage of {reference:g}")
+            continue
+        ratio = value / reference * 100
+        change = (value - reference) / reference * 100
+        print(f"{value:g} is {ratio:.2f}% of {reference:g} ({change:+.2f}%)")
+
+
 def closing():
     """Signal the wrapper to replace this calculator session."""
     Path(os.environ["CALC_RESTART_FILE"]).touch()
