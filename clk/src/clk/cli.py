@@ -192,7 +192,7 @@ def parsing_overview():
         "Formatting options:\n"
         "  timepoint: HH:MM (also HHMM, HHhMM), or signed delta like -34m / +1h32m\n"
         "  interval:  <timepoint>..<timepoint> (also <timepoint>-<timepoint>)\n"
-        "  start/end: clk start [timepoint], clk end [timepoint]\n"
+        "  start/end: clk start [timepoint], clk end [timepoint] or clk end <date> <timepoint>\n"
         "  break:     clk break, clk break <timepoint>, clk break <start> <+/-duration>, clk break <start..end>\n"
         "  session:   clk session [DD.MM.YY] <start..end>\n"
         "             clk session [DD.MM.YY] <start..(break_start..break_end)..end>\n"
@@ -253,6 +253,18 @@ def parse_iso_date(token):
         return date.fromisoformat(token.strip())
     except ValueError as e:
         raise ParseError(f"Invalid ISO date: {token!r}. Expected YYYY-MM-DD.") from e
+
+
+def parse_cli_date(token):
+    try:
+        return parse_iso_date(token)
+    except ParseError:
+        try:
+            return parse_date_token(token)
+        except ParseError as e:
+            raise ParseError(
+                f"Invalid date: {token!r}. Expected YYYY-MM-DD or DD.MM.YYYY."
+            ) from e
 
 
 def parse_holiday_spec(token):
@@ -950,11 +962,23 @@ def cmd_end(args):
         return 1
     db_before = json.loads(json.dumps(db))
     n = now()
-    day = n.date() - timedelta(days=1) if args.yesterday else None
-    if args.when is None:
-        t1 = n if day is None else datetime.combine(day, n.timetz())
+    parts = args.parts
+    if len(parts) > 2:
+        raise ParseError("Usage: clk end [timepoint] or clk end <date> <timepoint>")
+    if len(parts) == 2:
+        if args.yesterday:
+            raise ParseError("Use either an explicit date or --yesterday, not both.")
+        day = parse_cli_date(parts[0])
+        parse_clock_time(parts[1])
+        t1 = parse_timepoint(parts[1], n, fixed_date=day)
+    elif len(parts) == 1:
+        day = n.date() - timedelta(days=1) if args.yesterday else None
+        t1 = parse_timepoint(parts[0], n, fixed_date=day)
+    elif args.yesterday:
+        day = n.date() - timedelta(days=1)
+        t1 = datetime.combine(day, n.timetz())
     else:
-        t1 = parse_timepoint(args.when, n, fixed_date=day)
+        t1 = n
     b = active_break(sess)
     if b:
         b["end"] = dt_to_s(t1)
@@ -1244,7 +1268,12 @@ def main(argv=None):
     pe = sub.add_parser(
         "end", aliases=["stop"], help="end the current session (stop alias)"
     )
-    pe.add_argument("when", nargs="?", help="timepoint: HH:MM or signed delta (+/-)")
+    pe.add_argument(
+        "parts",
+        nargs="*",
+        metavar="date/timepoint",
+        help="[timepoint] or <YYYY-MM-DD|DD.MM.YYYY> <HH:MM>",
+    )
     pe.add_argument(
         "--yesterday",
         action="store_true",
