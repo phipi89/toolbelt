@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import subprocess
 from typing import Any
 
@@ -238,10 +239,10 @@ def _place_candidate(
 
 
 def _unique_frames(frames: list[dict[str, float]]) -> list[dict[str, float]]:
-    seen: set[tuple[int, int, int, int]] = set()
+    seen: set[tuple[float, float, float, float]] = set()
     unique = []
     for frame in frames:
-        key = tuple(round(frame[item]) for item in ("x", "y", "w", "h"))
+        key = tuple(frame[item] for item in ("x", "y", "w", "h"))
         if key in seen:
             continue
         seen.add(key)
@@ -253,10 +254,12 @@ def _place_candidates(
     target: dict[str, float],
     others: list[dict],
     bounds: tuple[float, float, float, float],
+    *,
+    keep_size: bool = False,
 ) -> list[dict[str, float]]:
     bx, by, bw, bh = bounds
-    width = bw * 0.67
-    height = bh * 0.67
+    width = target["w"] if keep_size else bw * 0.67
+    height = target["h"] if keep_size else bh * 0.67
     max_x = bx + bw - width
     max_y = by + bh - height
     current_center = geometry.center(target)
@@ -268,14 +271,17 @@ def _place_candidates(
         _place_candidate(
             bx + (bw - width) / 2, by + (bh - height) / 2, width, height, bounds
         ),
-        _place_candidate(
-            current_center["x"] - width / 2,
-            current_center["y"] - height / 2,
-            width,
-            height,
-            bounds,
-        ),
     ]
+    if not keep_size:
+        candidates.append(
+            _place_candidate(
+                current_center["x"] - width / 2,
+                current_center["y"] - height / 2,
+                width,
+                height,
+                bounds,
+            )
+        )
 
     for row in range(4):
         for col in range(4):
@@ -473,9 +479,32 @@ def center(size: float | None = None, reverse: bool = False) -> None:
     yabai.grid(win["id"], f"100:100:{start:g}:{start:g}:{target}:{target}")
 
 
-def place() -> None:
-    win = _target_window()
-    display = yabai.query_display()
+def _same_position(
+    first: dict[str, float], second: dict[str, float], tolerance: float = 2.0
+) -> bool:
+    return math.isclose(first["x"], second["x"], abs_tol=tolerance) and math.isclose(
+        first["y"], second["y"], abs_tol=tolerance
+    )
+
+
+def _is_display_corner(
+    frame: dict[str, float], bounds: tuple[float, float, float, float]
+) -> bool:
+    bx, by, bw, bh = bounds
+    return bool(
+        math.isclose(frame["x"], bx, abs_tol=0.01)
+        or math.isclose(frame["x"], bx + bw - frame["w"], abs_tol=0.01)
+    ) and bool(
+        math.isclose(frame["y"], by, abs_tol=0.01)
+        or math.isclose(frame["y"], by + bh - frame["h"], abs_tol=0.01)
+    )
+
+
+def place(
+    *, keep_size: bool = False, toggle: bool = False, window_id: int | None = None
+) -> None:
+    win = yabai.query_window(window_id) if window_id is not None else _target_window()
+    display = yabai.query_display(str(win["display"]))
     display_frame = display["frame"]
     bounds = (
         display_frame["x"],
@@ -488,19 +517,55 @@ def place() -> None:
         for other in _eligible_windows()
         if other["id"] != win["id"] and _same_display(other, display)
     ]
-    candidates = _place_candidates(win["frame"], others, bounds)
+    if keep_size and not others:
+        return
+    candidates = _place_candidates(win["frame"], others, bounds, keep_size=keep_size)
     current_center = geometry.center(win["frame"])
 
-    def score(frame: dict[str, float]) -> tuple[float, float]:
-        overlap = sum(geometry.overlap_area(frame, other["frame"]) for other in others)
-        movement = geometry.dist2(geometry.center(frame), current_center)
-        return overlap, movement
+    def overlap(frame: dict[str, float]) -> float:
+        return sum(geometry.overlap_area(frame, other["frame"]) for other in others)
 
-    best = min(candidates, key=score)
-    bx, by, bw, bh = bounds
-    start_x = (best["x"] - bx) * 100 / bw
-    start_y = (best["y"] - by) * 100 / bh
-    yabai.grid(win["id"], f"100:100:{start_x:g}:{start_y:g}:67:67")
+    def score(frame: dict[str, float]) -> tuple[float, float, float, float]:
+        movement = geometry.dist2(geometry.center(frame), current_center)
+        return overlap(frame), movement, frame["x"], frame["y"]
+
+    if keep_size:
+        candidates = _unique_frames([win["frame"], *candidates])
+        ranked = sorted(
+            candidates,
+            key=lambda candidate: (
+                overlap(candidate),
+                not _is_display_corner(candidate, bounds),
+                candidate["x"],
+                candidate["y"],
+            ),
+        )
+        distinct: list[dict[str, float]] = []
+        for candidate in ranked:
+            if not any(_same_position(candidate, other) for other in distinct):
+                distinct.append(candidate)
+
+        best = distinct[0]
+        current_index = next(
+            (
+                index
+                for index, candidate in enumerate(distinct)
+                if _same_position(candidate, win["frame"])
+            ),
+            None,
+        )
+        if not toggle or current_index != 0:
+            if not _same_position(best, win["frame"]):
+                yabai.move_abs(win["id"], best["x"], best["y"])
+            return
+
+        if len(distinct) < 2:
+            return
+        next_best = distinct[1]
+        yabai.move_abs(win["id"], next_best["x"], next_best["y"])
+        return
+
+    yabai.set_frame(win["id"], min(candidates, key=score))
 
 
 def cycle(target_index: int = 2) -> None:

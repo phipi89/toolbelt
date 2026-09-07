@@ -183,7 +183,7 @@ def _run_spawn(app_name: str, spawn_script: str, force: bool) -> None:
     _move_to_target(selected, display_index, space_index)
     _focus_window(selected)
     if created_new:
-        move.place()
+        move.place(window_id=selected["id"])
 
 
 def run(app_name: str, spawn_script: str = "", force: bool = False) -> None:

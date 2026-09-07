@@ -36,8 +36,11 @@ def _json_query(*args: str):
     return json.loads(output)
 
 
-def query_window() -> dict[str, Any]:
-    return _json_query("query", "--windows", "--window")
+def query_window(selector: int | str | None = None) -> dict[str, Any]:
+    args = ["query", "--windows", "--window"]
+    if selector is not None:
+        args.append(str(selector))
+    return _json_query(*args)
 
 
 def query_windows_on_space() -> list[dict[str, Any]]:

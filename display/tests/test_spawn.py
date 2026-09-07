@@ -121,12 +121,13 @@ class SpawnTests(unittest.TestCase):
             patch.object(spawn, "_app_is_running", return_value=True),
             patch.object(spawn, "_cmd_n", return_value=True) as cmd_n,
             patch.object(spawn, "_focus_window") as focus_window,
-            patch.object(spawn.move, "place"),
+            patch.object(spawn.move, "place") as place,
         ):
             spawn.run("iTerm2")
 
         cmd_n.assert_called_once_with("iTerm2")
         focus_window.assert_called_once_with(created)
+        place.assert_called_once_with(window_id=20)
 
     def test_failed_forced_spawn_exits_nonzero(self) -> None:
         with (

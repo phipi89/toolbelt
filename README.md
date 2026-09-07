@@ -33,8 +33,9 @@ This mapping is configured per app in `config/display/setup.yaml`.
 #### Tiling
 - <kbd>super</kbd>+<kbd>,</kbd>/<kbd>.</kbd>: tile left/right (cycles 50:50 ↔ 65:35)
 - <kbd>super</kbd>+<kbd>l</kbd>: grow centered size by 10% up to 100%; add <kbd>shift</kbd> to shrink down to 10%
-- <kbd>super</kbd>+<kbd>-</kbd>: almost minimise to lower left
+- <kbd>super</kbd>+<kbd>-</kbd>: almost minimise to lower right
 - <kbd>super</kbd>+<kbd>ö</kbd>: shift windows to minimise overlap
+- <kbd>shift</kbd>+<kbd>super</kbd>+<kbd>ö</kbd>: move only the frontmost window to an equally optimal low-overlap position without resizing it
 - <kbd>super</kbd>+<kbd>ü</kbd>: split or quad-tile windows.
 - <kbd>caps lock</kbd>: cycle focus between frontmost windows
 
