@@ -82,6 +82,13 @@ private final class GlyphBoundLayoutManager: NSLayoutManager {
 }
 
 @MainActor
+private final class DraggableStrip: NSView {
+    override func mouseDown(with event: NSEvent) {
+        window?.performDrag(with: event)
+    }
+}
+
+@MainActor
 private final class ProseTextView: NSTextView {
     var zoomHandler: ((CGFloat) -> Void)?
     var italicHandler: (() -> Void)?
@@ -110,6 +117,14 @@ private final class ProseTextView: NSTextView {
         }
         if characters == "-" {
             zoomHandler?(-2)
+            return true
+        }
+        if characters.lowercased() == "z" {
+            if event.modifierFlags.contains(.shift) {
+                undoManager?.redo()
+            } else {
+                undoManager?.undo()
+            }
             return true
         }
         if characters.lowercased() == "a" && event.modifierFlags.contains(.shift) {
@@ -162,6 +177,7 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
     private var isMonospaced = false
     private var isLoading = true
     private var isFinalized = false
+    private var associatedURL: URL?
     var onClose: (() -> Void)?
 
     init(fileURL: URL, backgroundColor: NSColor) throws {
@@ -176,6 +192,7 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
         window.title = "Prose"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
+        window.titlebarSeparatorStyle = .none
         window.backgroundColor = backgroundColor
         window.isMovableByWindowBackground = true
         window.hasShadow = true
@@ -221,7 +238,26 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
         scrollView.hasHorizontalScroller = false
         scrollView.automaticallyAdjustsContentInsets = false
         scrollView.documentView = textView
-        window.contentView = scrollView
+
+        let rootView = NSView(frame: window.contentLayoutRect)
+        rootView.wantsLayer = true
+        rootView.layer?.backgroundColor = backgroundColor.cgColor
+        let draggableStrip = DraggableStrip()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        draggableStrip.translatesAutoresizingMaskIntoConstraints = false
+        rootView.addSubview(scrollView)
+        rootView.addSubview(draggableStrip)
+        NSLayoutConstraint.activate([
+            draggableStrip.topAnchor.constraint(equalTo: rootView.topAnchor),
+            draggableStrip.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            draggableStrip.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            draggableStrip.heightAnchor.constraint(equalToConstant: 32),
+            scrollView.topAnchor.constraint(equalTo: draggableStrip.bottomAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor)
+        ])
+        window.contentView = rootView
 
         super.init(window: window)
         window.delegate = self
@@ -229,11 +265,13 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
         textView.zoomHandler = { [weak self] delta in self?.changeFontSize(by: delta) }
         textView.italicHandler = { [weak self] in self?.toggleItalic() }
         textView.monospaceHandler = { [weak self] in self?.toggleMonospace() }
-        textView.saveHandler = { [weak self] in self?.saveCopy() }
+        textView.saveHandler = { [weak self] in self?.saveAssociatedFile() }
 
         let contents = try String(contentsOf: fileURL, encoding: .utf8)
         textView.string = contents
         applyTypography()
+        textView.allowsUndo = true
+        textView.undoManager?.removeAllActions()
         isLoading = false
 
         NotificationCenter.default.addObserver(
@@ -339,7 +377,12 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
         updateLayout()
     }
 
-    private func saveCopy() {
+    private func saveAssociatedFile() {
+        if let associatedURL {
+            saveText(to: associatedURL)
+            return
+        }
+
         guard let window else { return }
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.plainText]
@@ -348,15 +391,24 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
         panel.nameFieldStringValue = "Prose.txt"
         panel.beginSheetModal(for: window) { [weak self] response in
             guard response == .OK, let self, let destination = panel.url else { return }
-            do {
-                try self.textView.string.write(
-                    to: destination,
-                    atomically: true,
-                    encoding: .utf8
-                )
-            } catch {
-                self.presentError(error)
-            }
+            self.saveText(to: destination)
+        }
+    }
+
+    private func saveText(to destination: URL) {
+        do {
+            try textView.string.write(
+                to: destination,
+                atomically: true,
+                encoding: .utf8
+            )
+            associatedURL = destination
+            window?.representedURL = destination
+            window?.title = destination.lastPathComponent
+            window?.subtitle = destination.deletingLastPathComponent().lastPathComponent
+            window?.titleVisibility = .visible
+        } catch {
+            presentError(error)
         }
     }
 
