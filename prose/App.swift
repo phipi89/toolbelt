@@ -431,6 +431,7 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
         let lineHeight = ceil(font.ascender - font.descender + font.leading) * lineHeightScale
         paragraph.minimumLineHeight = lineHeight
         paragraph.maximumLineHeight = lineHeight
+        paragraph.paragraphSpacing = fontSize * 0.45
 
         let range = NSRange(location: 0, length: textView.textStorage?.length ?? 0)
         textView.font = font
