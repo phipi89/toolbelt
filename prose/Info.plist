@@ -8,6 +8,10 @@
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>Prose</string>
+	<key>CFBundleIconFile</key>
+	<string>Prose</string>
+	<key>CFBundleIconName</key>
+	<string>Prose</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
