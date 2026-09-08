@@ -57,6 +57,7 @@ This project builds on *iTerm2* as the main interface, *Karabiner* for custom ke
 - yabai (`brew install asmvik/formulae/yabai`)
 		- MacOS
 	- deactivate: Settings > Schreibtisch & Dock > Beim Programmwechsel Space auswählen, der geöffnete Fenster des Programms enthält
+- Tesseract OCR (`brew install tesseract tesseract-lang`)
 
 ```sh
 ## link Karabiner config
@@ -78,6 +79,7 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 	- `buf` opens CotEditor as a text buffer.
 	- `prose` (<kbd>super</kbd>+<kbd>t</kbd>) opens a minimal autosaving serif text editor; `prose --recent` reopens recently closed documents.
 	- `search` (<kbd>super</kbd>+<kbd>b</kbd>) Search through spotlight indexed files.
+- `ocr` (<kbd>left cmd</kbd>+<kbd>shift</kbd>+<kbd>2</kbd>) copies text from a selected screen region. macOS may require Screen Recording permission for Karabiner-Elements.
 - `displayctl` used via keyboard shortcuts
 - `finderctl` provides Finder paths, file snapshots and cross-window checks through workflow helpers.
 - `setup save|open|list|suggest-name|edit`: save and restore current-screen window setups.
@@ -138,6 +140,7 @@ A *tool* is a script somewhere in this repo, exposed or directly defined in `ali
 | `snippets`     | <kbd>super</kbd>+<kbd>v</kbd>     | Paste text snippets                        |
 | `buf`          | `buf`                             | Cot editor text scratch buffer             |
 | `prose`        | <kbd>super</kbd>+<kbd>t</kbd>     | Minimal autosaving serif text editor       |
+| `ocr`          | <kbd>left cmd</kbd>+<kbd>shift</kbd>+<kbd>2</kbd> | Copy text from a selected screen region |
 | `setup`        | `setup ...`                       | Save/restore/edit window setups            |
 | `finderctl`    | `finderctl ...`                   | Finder integration used by workflow tools  |
 | `clk`          | `clk ...`                         | Time tracking                              |
@@ -165,6 +168,3 @@ A *tool* is a script somewhere in this repo, exposed or directly defined in `ali
 | `nbinit`       | `nbinit`                          | Create uv Jupyter project                  |
 | `pytemp`       | `pytemp`                          | uv Python project in temp directory        |
 | `nbtemp`       | `nbtemp`                          | uv Jupyter project in temp directory       |
-
-## Todo
-- [ ] integrate OCR screen capture tool

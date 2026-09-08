@@ -20,6 +20,21 @@
                         ]
                     },
                     {
+                        "description": "Left Cmd-Shift-2 -> OCR screen selection",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "2",
+                                    "modifiers": {
+                                        "mandatory": ["left_command", "left_shift"]
+                                    }
+                                },
+                                "to": [{ "shell_command": "$HOME/toolbelt/misc/ocr.py" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "move windows",
                         "manipulators": [
                             {

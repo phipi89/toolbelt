@@ -98,6 +98,7 @@ alias textitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/tex
 alias pytitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/textitle.py --prefix "#"'
 qrcode() { "$TOOLBELT/misc/qr.py" "$@"; }
 pbqr() { qrcode --clipboard "$@"; }
+ocr() { "$TOOLBELT/misc/ocr.py" "$@"; }
 source "$TOOLBELT/misc/compose_mail.sh"
 source "$TOOLBELT/misc/yank-to-clipboard.sh"
 source $TOOLBELT/misc/diskusage.sh
