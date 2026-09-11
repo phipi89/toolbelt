@@ -22,7 +22,7 @@ APP_NAME="$*"
 CONFIG_PATH="$HOME/toolbelt/config/display/setup.yaml"
 
 export APP_NAME
-if ! ACTION=$(yq e -r '.apps[strenv(APP_NAME)].action // .default_action' "$CONFIG_PATH"); then
+if ! ACTION=$(yq e -r '(.apps | with_entries(.key |= downcase))[(strenv(APP_NAME) | downcase)].action // .default_action' "$CONFIG_PATH"); then
   print -u2 "failed to read display config: $CONFIG_PATH"
   exit 2
 fi
@@ -30,7 +30,7 @@ _display_timing_mark "yq action"
 
 case "$ACTION" in
   spawn_new)
-    if ! SPAWN_SCRIPT=$(yq e -r '.apps[strenv(APP_NAME)].spawn_script // ""' "$CONFIG_PATH"); then
+    if ! SPAWN_SCRIPT=$(yq e -r '(.apps | with_entries(.key |= downcase))[(strenv(APP_NAME) | downcase)].spawn_script // ""' "$CONFIG_PATH"); then
       print -u2 "failed to read display config: $CONFIG_PATH"
       exit 2
     fi

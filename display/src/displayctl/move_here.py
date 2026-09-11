@@ -7,6 +7,7 @@ def run(app_name: str) -> None:
     with timing.timed("move-here total"):
         wins = goto.matching_windows(app_name)
         if not wins:
+            goto.activate_app(app_name)
             return
 
         if len(wins) == 1:

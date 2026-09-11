@@ -7,6 +7,21 @@ from displayctl import move_here
 
 
 class MoveHereTests(unittest.TestCase):
+    def test_closed_app_is_launched_without_querying_a_space(self) -> None:
+        with (
+            patch.object(move_here.goto, "matching_windows", return_value=[]),
+            patch.object(move_here.goto, "activate_app") as activate_app,
+            patch.object(move_here.yabai, "query_space") as query_space,
+            patch.object(move_here.yabai, "move_space") as move_space,
+            patch.object(move_here.goto, "focus_window") as focus_window,
+        ):
+            move_here.run("Zotero")
+
+        activate_app.assert_called_once_with("Zotero")
+        query_space.assert_not_called()
+        move_space.assert_not_called()
+        focus_window.assert_not_called()
+
     def test_window_space_is_compared_with_space_index(self) -> None:
         win = {"id": 10, "space": 3, "is-visible": True}
         space = {"id": 500, "index": 3, "is-native-fullscreen": False}
