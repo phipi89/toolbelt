@@ -22,6 +22,7 @@ BINARY="$APP/Contents/MacOS/Prose"
 BUNDLED_FONTS="$APP/Contents/Resources/Fonts"
 BUNDLED_ASSETS="$APP/Contents/Resources/Assets.car"
 BUNDLED_ICON="$APP/Contents/Resources/Prose.icns"
+BUNDLED_ICON_ARTWORK="$APP/Contents/Resources/Prose-mark.png"
 ICON_BUILD="$APP/Contents/.icon-build"
 
 usage() {
@@ -38,6 +39,7 @@ build_app() {
   if [ ! -x "$BINARY" ] || [ "$SOURCE" -nt "$BINARY" ] || [ "$INFO_PLIST" -nt "$APP/Contents/Info.plist" ] ||
      [ "$ICON_DEFINITION" -nt "$BUNDLED_ICON" ] || [ "$ICON_IMAGE" -nt "$BUNDLED_ICON" ] ||
      [ ! -f "$BUNDLED_ASSETS" ] || [ ! -f "$BUNDLED_ICON" ] ||
+     [ "$ICON_IMAGE" -nt "$BUNDLED_ICON_ARTWORK" ] || [ ! -f "$BUNDLED_ICON_ARTWORK" ] ||
      [ "$FONT_REGULAR" -nt "$BINARY" ] || [ "$FONT_ITALIC" -nt "$BINARY" ] ||
      [ ! -f "$BUNDLED_FONTS/EBGaramond-VariableFont_wght.ttf" ] ||
      [ ! -f "$BUNDLED_FONTS/EBGaramond-Italic-VariableFont_wght.ttf" ] ||
@@ -47,6 +49,7 @@ build_app() {
     mv "$BINARY.new" "$BINARY"
     cp "$INFO_PLIST" "$APP/Contents/Info.plist"
     cp "$FONT_REGULAR" "$FONT_ITALIC" "$FONT_LICENSE" "$BUNDLED_FONTS/"
+    cp "$ICON_IMAGE" "$BUNDLED_ICON_ARTWORK"
     rm -rf "$ICON_BUILD"
     mkdir "$ICON_BUILD"
     xcrun actool --compile "$ICON_BUILD" \

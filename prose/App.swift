@@ -179,6 +179,7 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
     private var isFinalized = false
     private var associatedURL: URL?
     var onClose: (() -> Void)?
+    var onBecomeKey: ((NSColor) -> Void)?
 
     init(fileURL: URL, backgroundColor: NSColor) throws {
         self.fileURL = fileURL
@@ -321,6 +322,11 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
     func windowWillClose(_ notification: Notification) {
         saveTimer?.invalidate()
         onClose?()
+    }
+
+    func windowDidBecomeKey(_ notification: Notification) {
+        guard let window else { return }
+        onBecomeKey?(window.backgroundColor)
     }
 
     @objc func save() {
@@ -480,6 +486,7 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
 private final class AppDelegate: NSObject, NSApplicationDelegate {
     private var documents: [String: DocumentWindowController] = [:]
     private var paletteIndex = Int.random(in: 0..<AppDelegate.palette.count)
+    private lazy var iconArtwork = Bundle.main.image(forResource: "Prose-mark")
 
     private static let palette: [NSColor] = [
         NSColor(calibratedRed: 0.97, green: 0.87, blue: 0.65, alpha: 1),
@@ -540,8 +547,25 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
         paletteIndex += 1
         let controller = try DocumentWindowController(fileURL: url, backgroundColor: color)
         controller.onClose = { [weak self] in self?.documents.removeValue(forKey: key) }
+        controller.onBecomeKey = { [weak self] color in self?.updateApplicationIcon(color) }
         documents[key] = controller
         controller.present()
+    }
+
+    private func updateApplicationIcon(_ backgroundColor: NSColor) {
+        guard let iconArtwork else { return }
+
+        let size = NSSize(width: 1024, height: 1024)
+        let icon = NSImage(size: size)
+        icon.lockFocus()
+        let bounds = NSRect(origin: .zero, size: size).insetBy(dx: 100, dy: 100)
+        let shape = NSBezierPath(roundedRect: bounds, xRadius: 185, yRadius: 185)
+        shape.addClip()
+        backgroundColor.setFill()
+        bounds.fill()
+        iconArtwork.draw(in: bounds, from: .zero, operation: .multiply, fraction: 1)
+        icon.unlockFocus()
+        NSApp.applicationIconImage = icon
     }
 
     private func installMenu() {
