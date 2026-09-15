@@ -94,6 +94,7 @@ private final class ProseTextView: NSTextView {
     var italicHandler: (() -> Void)?
     var monospaceHandler: (() -> Void)?
     var saveHandler: (() -> Void)?
+    var statisticsHandler: (() -> Void)?
     var expandsTabs = false
 
     override func insertTab(_ sender: Any?) {
@@ -151,7 +152,11 @@ private final class ProseTextView: NSTextView {
             return true
         }
         if characters.lowercased() == "i" {
-            italicHandler?()
+            if event.modifierFlags.contains(.shift) {
+                statisticsHandler?()
+            } else {
+                italicHandler?()
+            }
             return true
         }
         if characters.lowercased() == "u" {
@@ -171,12 +176,14 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
     let fileURL: URL
     private let textView: ProseTextView
     private let scrollView: NSScrollView
+    private let statisticsLabel: NSTextField
     private var saveTimer: Timer?
     private var fontSize = baseFontSize
     private var isItalic = false
     private var isMonospaced = false
     private var isLoading = true
     private var isFinalized = false
+    private var isStatisticsVisible = false
     private var associatedURL: URL?
     var onClose: (() -> Void)?
     var onBecomeKey: ((NSColor) -> Void)?
@@ -240,6 +247,13 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
         scrollView.automaticallyAdjustsContentInsets = false
         scrollView.documentView = textView
 
+        let statisticsLabel = NSTextField(labelWithString: "")
+        self.statisticsLabel = statisticsLabel
+        statisticsLabel.font = NSFont.systemFont(ofSize: 11)
+        statisticsLabel.textColor = NSColor(calibratedWhite: 0.13, alpha: 0.5)
+        statisticsLabel.alignment = .center
+        statisticsLabel.isHidden = true
+
         let rootView = NSView(frame: window.contentLayoutRect)
         rootView.wantsLayer = true
         rootView.layer?.backgroundColor = backgroundColor.cgColor
@@ -248,6 +262,8 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
         draggableStrip.translatesAutoresizingMaskIntoConstraints = false
         rootView.addSubview(scrollView)
         rootView.addSubview(draggableStrip)
+        rootView.addSubview(statisticsLabel)
+        statisticsLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             draggableStrip.topAnchor.constraint(equalTo: rootView.topAnchor),
             draggableStrip.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
@@ -256,7 +272,9 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
             scrollView.topAnchor.constraint(equalTo: draggableStrip.bottomAnchor),
             scrollView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor)
+            scrollView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor),
+            statisticsLabel.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
+            statisticsLabel.bottomAnchor.constraint(equalTo: rootView.bottomAnchor, constant: -14)
         ])
         window.contentView = rootView
 
@@ -267,6 +285,7 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
         textView.italicHandler = { [weak self] in self?.toggleItalic() }
         textView.monospaceHandler = { [weak self] in self?.toggleMonospace() }
         textView.saveHandler = { [weak self] in self?.saveAssociatedFile() }
+        textView.statisticsHandler = { [weak self] in self?.toggleStatistics() }
 
         let contents = try String(contentsOf: fileURL, encoding: .utf8)
         textView.string = contents
@@ -304,6 +323,9 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
     func textDidChange(_ notification: Notification) {
         guard !isLoading else { return }
         updateLayout()
+        if isStatisticsVisible {
+            updateStatistics()
+        }
         saveTimer?.invalidate()
         saveTimer = Timer.scheduledTimer(
             timeInterval: autosaveDelay,
@@ -381,6 +403,30 @@ private final class DocumentWindowController: NSWindowController, NSWindowDelega
         }
         applyTypography()
         updateLayout()
+    }
+
+    private func toggleStatistics() {
+        isStatisticsVisible.toggle()
+        statisticsLabel.isHidden = !isStatisticsVisible
+        if isStatisticsVisible {
+            updateStatistics()
+        }
+    }
+
+    private func updateStatistics() {
+        let text = textView.string
+        let lines = text.isEmpty ? 0 : text.count(where: \Character.isNewline) + 1
+        var words = 0
+        text.enumerateSubstrings(
+            in: text.startIndex..<text.endIndex,
+            options: [.byWords, .substringNotRequired]
+        ) { _, _, _, _ in
+            words += 1
+        }
+        let characters = text.count
+        statisticsLabel.stringValue = "\(lines) \(lines == 1 ? "line" : "lines")  ·  "
+            + "\(characters) \(characters == 1 ? "character" : "characters")  ·  "
+            + "\(words) \(words == 1 ? "word" : "words")"
     }
 
     private func saveAssociatedFile() {
