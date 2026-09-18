@@ -151,7 +151,7 @@ A *tool* is a script somewhere in this repo, exposed or directly defined in `ali
 | `timer`        | `timer`                           | Timer                                      |
 | `grab`         | `grab`                            | `cd` into the frontmost Finder directory   |
 | `gsnap`        | `gsnap`                           | Snapshot selected Finder file              |
-| `gtouch`       | `gtouch <fname>`                  | Create file in frontmost Finder directory  |
+| `gtouch`       | `gtouch [--file] <name>...`       | Create folders, or files for names with extensions |
 | `check_left_in_right` | `check_left_in_right [--depth N]` | Verify left Finder files exist on right |
 | `diskusage`    | `diskusage`                       | List directory contents sorted by size     |
 | `textitle`     | `textitle <text>`                 | Comment-prefixed figlet title to clipboard |

@@ -15,6 +15,21 @@ class CliTests(unittest.TestCase):
                 cli._touch([])
             self.assertTrue(Path(directory, "empty.txt").is_file())
 
+    def test_touch_creates_folders_for_extensionless_names(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(cli.finder, "front_path", return_value=directory):
+                cli._touch(["photos", "notes.txt"])
+
+            self.assertTrue(Path(directory, "photos").is_dir())
+            self.assertTrue(Path(directory, "notes.txt").is_file())
+
+    def test_touch_can_force_an_extensionless_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(cli.finder, "front_path", return_value=directory):
+                cli._touch(["README"], force_file=True)
+
+            self.assertTrue(Path(directory, "README").is_file())
+
     def test_snapshot_copies_selected_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             selected = Path(directory, "photo.jpg")

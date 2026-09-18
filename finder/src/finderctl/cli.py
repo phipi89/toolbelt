@@ -19,10 +19,14 @@ def _snapshot() -> str:
     return str(target)
 
 
-def _touch(names: list[str]) -> None:
+def _touch(names: list[str], *, force_file: bool = False) -> None:
     directory = Path(finder.front_path())
     for name in names or ["empty.txt"]:
-        (directory / name).touch()
+        target = directory / name
+        if force_file or target.suffix:
+            target.touch()
+        else:
+            target.mkdir(exist_ok=True)
 
 
 def main() -> None:
@@ -33,7 +37,12 @@ def main() -> None:
     subparsers.add_parser("selected-file", help="print the selected Finder file")
     subparsers.add_parser("snapshot", help="snapshot the selected Finder file")
 
-    touch_parser = subparsers.add_parser("touch", help="create files in the front Finder folder")
+    touch_parser = subparsers.add_parser(
+        "touch", help="create files or folders in the front Finder folder"
+    )
+    touch_parser.add_argument(
+        "--file", action="store_true", help="create extensionless names as files"
+    )
     touch_parser.add_argument("names", nargs="*")
 
     check_parser = subparsers.add_parser(
@@ -53,7 +62,7 @@ def main() -> None:
         elif args.command == "snapshot":
             print(_snapshot())
         elif args.command == "touch":
-            _touch(args.names)
+            _touch(args.names, force_file=args.file)
         elif args.command == "check-left-in-right":
             if args.depth < 0:
                 parser.error("--depth must be non-negative")
