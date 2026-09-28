@@ -81,6 +81,7 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 	- `prose` (<kbd>super</kbd>+<kbd>t</kbd>) opens a minimal autosaving serif text editor; `prose --recent` reopens recently closed documents.
 	- `search` (<kbd>super</kbd>+<kbd>b</kbd>) Search through spotlight indexed files.
 - `ocr` (<kbd>left cmd</kbd>+<kbd>shift</kbd>+<kbd>2</kbd>) copies text from a selected screen region. macOS may require Screen Recording permission for Karabiner-Elements.
+- `open_in_obsidian <file>` opens Markdown files in their containing vault, temporarily linking files outside a vault. Run `obsidian/build.sh --associate` to make it the default Markdown handler.
 - `displayctl` used via keyboard shortcuts
 - `finderctl` provides Finder paths, file snapshots and cross-window checks through workflow helpers.
 - `setup save|open|list|suggest-name|edit`: save and restore current-screen window setups.
