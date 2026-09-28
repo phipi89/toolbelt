@@ -99,8 +99,10 @@ alias pytitle='uv run --no-project --with pyperclip,pyfiglet $TOOLBELT/misc/text
 qrcode() { "$TOOLBELT/misc/qr.py" "$@"; }
 pbqr() { qrcode --clipboard "$@"; }
 ocr() { "$TOOLBELT/misc/ocr.py" "$@"; }
+open_in_obsidian() { "$TOOLBELT/obsidian/open.sh" "$@"; }
 source "$TOOLBELT/misc/compose_mail.sh"
 source "$TOOLBELT/misc/yank-to-clipboard.sh"
+source "$TOOLBELT/misc/tab-presets.zsh"
 source $TOOLBELT/misc/diskusage.sh
 source $TOOLBELT/misc/eject-all.sh
 setup() { "$TOOLBELT/setup/setup.sh" "$@"; }
