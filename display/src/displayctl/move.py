@@ -7,6 +7,9 @@ from typing import Any
 
 from . import geometry, yabai
 
+_CORNERS = ("top_left", "top_right", "bottom_right", "bottom_left")
+_SYSTEM_EDGE_TOLERANCE = 64.0
+
 
 def _hotkey_window(win: dict[str, Any]) -> bool:
     return bool(
@@ -114,6 +117,49 @@ def _move_to_corner(
     yabai.move_abs(win["id"], x, y)
 
 
+def _window_corner(win: dict, bounds: tuple[float, float, float, float]) -> str | None:
+    frame = win["frame"]
+    x, y, w, h = bounds
+    width = min(frame["w"], w)
+    height = min(frame["h"], h)
+    horizontal = [
+        name
+        for name, expected in (("left", x), ("right", x + w - width))
+        if geometry.close(frame["x"], expected)
+    ]
+    vertical = [
+        name
+        for name, matches in (
+            ("top", y - geometry.TOLERANCE <= frame["y"] <= y + _SYSTEM_EDGE_TOLERANCE),
+            ("bottom", geometry.close(frame["y"], y + h - height)),
+        )
+        if matches
+    ]
+    if len(horizontal) != 1 or len(vertical) != 1:
+        return None
+    return f"{vertical[0]}_{horizontal[0]}"
+
+
+def _rotate_corner_layout(
+    wins: list[dict], bounds: tuple[float, float, float, float]
+) -> bool:
+    if not 1 <= len(wins) <= 4:
+        return False
+
+    corners = [_window_corner(win, bounds) for win in wins]
+    if any(corner is None for corner in corners) or len(set(corners)) != len(corners):
+        return False
+
+    indices = sorted(_CORNERS.index(corner) for corner in corners if corner)
+    if len(indices) == 2 and indices[1] - indices[0] != 2:
+        return False
+
+    for win, corner in zip(wins, corners, strict=True):
+        index = _CORNERS.index(corner)
+        _move_to_corner(win, _CORNERS[(index + 1) % len(_CORNERS)], bounds)
+    return True
+
+
 def _split_state(
     left_frame: dict[str, float], right_frame: dict[str, float]
 ) -> str | None:
@@ -158,6 +204,50 @@ def _split_pair(wins: list[dict]) -> tuple[dict, dict, str] | None:
             state = _split_state(left_win["frame"], right_win["frame"])
             if state:
                 return left_win, right_win, state
+    return None
+
+
+def _matches_display_bounds(
+    candidate: tuple[float, float, float, float],
+    display: tuple[float, float, float, float],
+) -> bool:
+    cx, cy, cw, ch = candidate
+    dx, dy, dw, dh = display
+    return (
+        geometry.close(cx, dx)
+        and geometry.close(cx + cw, dx + dw)
+        and abs(cy - dy) <= _SYSTEM_EDGE_TOLERANCE
+        and abs(cy + ch - (dy + dh)) <= _SYSTEM_EDGE_TOLERANCE
+    )
+
+
+def _finalized_split_pair(
+    wins: list[dict], bounds: tuple[float, float, float, float]
+) -> tuple[dict, dict, str] | None:
+    for index, first in enumerate(wins):
+        for second in wins[index + 1 :]:
+            left_win, right_win = sorted(
+                [first, second], key=lambda win: win["frame"]["x"]
+            )
+            half_bounds = _framed_half_bounds(left_win["frame"])
+            framed_left = _grid_frame(half_bounds, 20, 20, 1, 1, 9, 18)
+            framed_right = _grid_frame(half_bounds, 20, 20, 10, 1, 9, 18)
+            if (
+                geometry.same_frame(left_win["frame"], framed_left)
+                and geometry.same_frame(right_win["frame"], framed_right)
+                and _matches_display_bounds(half_bounds, bounds)
+            ):
+                return left_win, right_win, "framed_half"
+
+            weighted_bounds = _framed_weighted_bounds(left_win["frame"])
+            framed_left = _grid_frame(weighted_bounds, 20, 30, 1, 1, 19, 18)
+            framed_right = _grid_frame(weighted_bounds, 20, 30, 20, 1, 9, 18)
+            if (
+                geometry.same_frame(left_win["frame"], framed_left)
+                and geometry.same_frame(right_win["frame"], framed_right)
+                and _matches_display_bounds(weighted_bounds, bounds)
+            ):
+                return left_win, right_win, "framed_weighted"
     return None
 
 
@@ -324,10 +414,10 @@ def _same_display(win: dict, display: dict) -> bool:
 
 def _corner_order(count: int) -> list[str]:
     if count == 2:
-        return ["top_left", "bottom_right"]
+        return [_CORNERS[0], _CORNERS[2]]
     if count == 3:
-        return ["top_left", "top_right", "bottom_right"]
-    return ["top_left", "top_right", "bottom_right", "bottom_left"][:count]
+        return list(_CORNERS[:3])
+    return list(_CORNERS[:count])
 
 
 def _place_by_nearest_slot(
@@ -609,10 +699,23 @@ def tile() -> None:
 
 def distribute() -> None:
     wins = _eligible_windows(limit=6)
-    if len(wins) < 2 or not _has_overlap(wins):
+    if len(wins) < 2:
         return
 
     bounds = _display_bounds()
+    finalized_split = _finalized_split_pair(wins, bounds)
+    if finalized_split:
+        left_win, right_win, _ = finalized_split
+        split_ids = {left_win["id"], right_win["id"]}
+        remaining = [win for win in wins if win["id"] not in split_ids][:4]
+        if not remaining or _rotate_corner_layout(remaining, bounds):
+            return
+    elif _rotate_corner_layout(wins, bounds):
+        return
+
+    if not _has_overlap(wins):
+        return
+
     split_pair = _split_pair(wins)
 
     if split_pair:

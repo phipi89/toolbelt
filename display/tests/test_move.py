@@ -7,6 +7,22 @@ from displayctl import move
 
 
 class MoveTests(unittest.TestCase):
+    def _corner_window(
+        self,
+        window_id: int,
+        corner: str,
+        *,
+        width: float = 20,
+        height: float = 20,
+        top_inset: float = 0,
+    ) -> dict:
+        bounds = (0, 0, 100, 100)
+        frame = {"x": 0, "y": 0, "w": width, "h": height}
+        x, y = move._corner_position(frame, corner, bounds)
+        if corner.startswith("top"):
+            y += top_inset
+        return {"id": window_id, "frame": {**frame, "x": x, "y": y}}
+
     def _hotkey(self, window_id: int = 10, level: int = 25) -> dict:
         return {
             "id": window_id,
@@ -308,6 +324,177 @@ class MoveTests(unittest.TestCase):
             set_frame.call_args.args, (10, {"x": 0, "y": 0, "w": 67, "h": 67})
         )
         grid.assert_not_called()
+
+    def test_distribute_rotates_realized_corner_layouts_clockwise(self) -> None:
+        cases = (
+            (["top_left", "bottom_right"], [(80, 0), (0, 80)]),
+            (["top_left", "top_right", "bottom_right"], [(80, 0), (80, 80), (0, 80)]),
+            (
+                ["top_left", "top_right", "bottom_right", "bottom_left"],
+                [(80, 0), (80, 80), (0, 80), (0, 0)],
+            ),
+        )
+        for corners, expected_positions in cases:
+            with self.subTest(count=len(corners)):
+                wins = [
+                    self._corner_window(index, corner)
+                    for index, corner in enumerate(corners, start=1)
+                ]
+                with (
+                    patch.object(move, "_eligible_windows", return_value=wins),
+                    patch.object(
+                        move, "_display_bounds", return_value=(0, 0, 100, 100)
+                    ),
+                    patch.object(move.yabai, "move_abs") as move_abs,
+                    patch.object(move.yabai, "grid") as grid,
+                ):
+                    move.distribute()
+
+                self.assertEqual(
+                    [call.args for call in move_abs.call_args_list],
+                    [
+                        (win["id"], x, y)
+                        for win, (x, y) in zip(wins, expected_positions, strict=True)
+                    ],
+                )
+                grid.assert_not_called()
+
+    def test_distribute_rotates_other_two_window_phase(self) -> None:
+        wins = [
+            self._corner_window(10, "top_right"),
+            self._corner_window(20, "bottom_left"),
+        ]
+        with (
+            patch.object(move, "_eligible_windows", return_value=wins),
+            patch.object(move, "_display_bounds", return_value=(0, 0, 100, 100)),
+            patch.object(move.yabai, "move_abs") as move_abs,
+        ):
+            move.distribute()
+
+        self.assertEqual(
+            [call.args for call in move_abs.call_args_list],
+            [(10, 80, 80), (20, 0, 0)],
+        )
+
+    def test_distribute_does_not_rotate_adjacent_windows(self) -> None:
+        wins = [
+            self._corner_window(10, "top_left"),
+            self._corner_window(20, "top_right"),
+        ]
+        with (
+            patch.object(move, "_eligible_windows", return_value=wins),
+            patch.object(move, "_display_bounds", return_value=(0, 0, 100, 100)),
+            patch.object(move.yabai, "move_abs") as move_abs,
+        ):
+            move.distribute()
+
+        move_abs.assert_not_called()
+
+    def test_distribute_recognizes_menu_bar_inset(self) -> None:
+        wins = [
+            self._corner_window(10, "top_left", top_inset=31),
+            self._corner_window(20, "bottom_right"),
+        ]
+        with (
+            patch.object(move, "_eligible_windows", return_value=wins),
+            patch.object(move, "_display_bounds", return_value=(0, 0, 100, 100)),
+            patch.object(move.yabai, "move_abs") as move_abs,
+        ):
+            move.distribute()
+
+        self.assertEqual(
+            [call.args for call in move_abs.call_args_list],
+            [(10, 80, 0), (20, 0, 80)],
+        )
+
+    def test_distribute_rejects_ambiguous_full_width_windows(self) -> None:
+        wins = [
+            self._corner_window(10, "top_left", width=100),
+            self._corner_window(20, "bottom_left", width=100),
+        ]
+        with patch.object(move.yabai, "move_abs") as move_abs:
+            self.assertFalse(move._rotate_corner_layout(wins, (0, 0, 100, 100)))
+
+        move_abs.assert_not_called()
+
+    def test_distribute_does_not_rotate_subset_of_five_windows(self) -> None:
+        wins = [
+            self._corner_window(index, corner)
+            for index, corner in enumerate(move._CORNERS, start=1)
+        ]
+        wins.append({"id": 5, "frame": {"x": 40, "y": 40, "w": 20, "h": 20}})
+        with (
+            patch.object(move, "_eligible_windows", return_value=wins),
+            patch.object(move, "_display_bounds", return_value=(0, 0, 100, 100)),
+            patch.object(move.yabai, "move_abs") as move_abs,
+        ):
+            move.distribute()
+
+        move_abs.assert_not_called()
+
+    def test_distribute_keeps_framed_split_and_rotates_remainder(self) -> None:
+        bounds = (0, 0, 100, 100)
+        split_left = {"id": 10, "frame": move._grid_frame(bounds, 20, 20, 1, 1, 9, 18)}
+        split_right = {
+            "id": 20,
+            "frame": move._grid_frame(bounds, 20, 20, 10, 1, 9, 18),
+        }
+        top_left = self._corner_window(30, "top_left", width=10, height=10)
+        bottom_right = self._corner_window(40, "bottom_right", width=10, height=10)
+        wins = [split_left, split_right, top_left, bottom_right]
+
+        with (
+            patch.object(move, "_eligible_windows", return_value=wins),
+            patch.object(move, "_display_bounds", return_value=bounds),
+            patch.object(move.yabai, "move_abs") as move_abs,
+            patch.object(move.yabai, "grid") as grid,
+        ):
+            move.distribute()
+
+        self.assertEqual(
+            [call.args for call in move_abs.call_args_list],
+            [(30, 90, 0), (40, 0, 90)],
+        )
+        grid.assert_not_called()
+
+    def test_distribute_keeps_framed_split_without_remainder(self) -> None:
+        bounds = (0, 0, 100, 100)
+        wins = [
+            {"id": 10, "frame": move._grid_frame(bounds, 20, 20, 1, 1, 9, 18)},
+            {"id": 20, "frame": move._grid_frame(bounds, 20, 20, 10, 1, 9, 18)},
+        ]
+        with (
+            patch.object(move, "_eligible_windows", return_value=wins),
+            patch.object(move, "_display_bounds", return_value=bounds),
+            patch.object(move.yabai, "move_abs") as move_abs,
+            patch.object(move.yabai, "grid") as grid,
+        ):
+            move.distribute()
+
+        move_abs.assert_not_called()
+        grid.assert_not_called()
+
+    def test_distribute_does_not_treat_full_split_as_finalized(self) -> None:
+        wins = [
+            {"id": 10, "frame": {"x": 0, "y": 0, "w": 500, "h": 1000}},
+            {"id": 20, "frame": {"x": 500, "y": 0, "w": 500, "h": 1000}},
+        ]
+
+        self.assertIsNone(move._finalized_split_pair(wins, (0, 0, 1000, 1000)))
+
+    def test_distribute_still_places_an_overlapping_unarranged_layout(self) -> None:
+        wins = [
+            {"id": 10, "frame": {"x": 30, "y": 30, "w": 30, "h": 30}},
+            {"id": 20, "frame": {"x": 40, "y": 40, "w": 30, "h": 30}},
+        ]
+        with (
+            patch.object(move, "_eligible_windows", return_value=wins),
+            patch.object(move, "_display_bounds", return_value=(0, 0, 100, 100)),
+            patch.object(move.yabai, "move_abs") as move_abs,
+        ):
+            move.distribute()
+
+        self.assertEqual(len(move_abs.call_args_list), 2)
 
     def test_split_uses_shared_state_transition(self) -> None:
         left = {"id": 10, "frame": {"x": 0}}
