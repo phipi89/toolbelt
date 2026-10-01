@@ -52,6 +52,7 @@ This project builds on *iTerm2* as the main interface, *Karabiner* for custom ke
 - iTerm2
 	- settings > "Load preferences from a custom folder or URL" > `~/toolbelt/config/iTerm2/`
 	- source `~/toolbelt/aliases.sh` in your `zshrc`.
+- Xcode Command Line Tools (`xcode-select --install`) for building Prose
 - Karabiner Elements (`brew install karabiner-elements`)
 	- symlink config into this repo (see below)
 - yabai (`brew install asmvik/formulae/yabai`)
