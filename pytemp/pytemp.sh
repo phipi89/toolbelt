@@ -1,6 +1,6 @@
 pynit() {
     local target="${1:-.}"
-    local libraries=(scipy matplotlib tqdm)
+    local libraries=(scipy matplotlib tqdm "phipy @ git+https://github.com/phipi89/phipy.git")
 
     echo "…starting in $PWD"
 
@@ -12,7 +12,7 @@ pynit() {
     fi
 
     echo "…initializing project"
-    if ! uv init --bare --no-workspace . >/dev/null 2>&1; then
+    if ! uv init --bare --no-workspace --python 3.13 . >/dev/null 2>&1; then
         echo "…failed to initialize project"
         return 1
     fi

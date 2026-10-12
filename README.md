@@ -99,6 +99,8 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 - python
 	- `pyinit|nbinit [title|.]`: uv project with(out) jupyter
 	- `pytemp|nbtemp`: uv project with(out) jupyter in a temp directory
+	- All four Python helpers require Python 3.13 or newer and include `scipy`, `matplotlib`, `tqdm`, and GitHub `phipy` (which also installs GitHub `phipy-plots`).
+	- Python snippets include `from phipy.full import *`, `phipy-git` installation, and `phipy-local` editable installation of both repositories.
 	- `snippets --edit` opens shared snippets; `snippets --edit --local` opens machine-local snippets.
 
 ## Adding tools

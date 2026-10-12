@@ -1,6 +1,6 @@
 py:
   init: |
-    from eartools import *
+    from phipy.full import *
 
   shebang: |
     #!/usr/bin/env -S uv run
@@ -8,15 +8,31 @@ py:
     # dependencies = ["pyperclip", "pyfiglet"]
     # ///
 
-  eartools: |
-    [tool.uv.sources]
-      # source through github (static)
-      # add tag = "v0.2.3" or rev = "969391f505b12b898dda8da9afd82352b485d454"
-      # phipy-plots = { git = "https://github.com/phipi89/phipy-plots" }
+  phipy-git: |
+    uv add git+https://github.com/phipi89/phipy.git
 
-      # source locally (editable)
+  phipy-local: |
+    # Merge into pyproject.toml; adjust paths for your checkout layout.
+    # Then run: uv add --editable ../phipy ../phipy-plots
+    [tool.uv]
+    override-dependencies = ["phipy-plots"]
+
+    [tool.uv.sources]
+    phipy = { path = "../phipy", editable = true }
+    phipy-plots = { path = "../phipy-plots", editable = true }
+
+  eartools: |
+    [tool.uv]
+    override-dependencies = ["phipy-plots"]
+
+    [tool.uv.sources]
+      # GitHub installation also resolves phipy-plots from GitHub.
+      # phipy = { git = "https://github.com/phipi89/phipy.git" }
+
+      # Local editable overrides; declare dependencies with uv add first.
       eartools = { path = "../../eartools", editable = true }
       phipy = { path = "../../phipy", editable = true }
+      phipy-plots = { path = "../../phipy-plots", editable = true }
 
   autoreload: |
     %load_ext autoreload
@@ -107,4 +123,3 @@ git:
     .zed/
     .vscode/
     .idea/
-
