@@ -74,12 +74,24 @@ grab() {
 }
 
 gtouch() {
-  if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    _finderctl touch --help
-    return
-  fi
+  local open=0
+  local -a arguments
+  local argument
+  for argument in "$@"; do
+    case "$argument" in
+      -o|--open) open=1 ;;
+      -h|--help)
+        echo "usage: gtouch [-o|--open] [--file] [NAME ...]"
+        echo "  create files or folders in the front Finder folder."
+        echo "  nested paths create missing parent folders; -o opens newly created files."
+        return 0
+        ;;
+      *) arguments+=("$argument") ;;
+    esac
+  done
   grab || return 1
-  _finderctl touch "$@"
+  (( open )) && arguments=(--open "${arguments[@]}")
+  _finderctl touch "${arguments[@]}"
 }
 
 gsnap() { _finderctl snapshot "$@"; }
@@ -105,4 +117,5 @@ source "$TOOLBELT/misc/yank-to-clipboard.sh"
 source "$TOOLBELT/misc/tab-presets.zsh"
 source $TOOLBELT/misc/diskusage.sh
 source $TOOLBELT/misc/eject-all.sh
+source $TOOLBELT/misc/shrink.sh
 setup() { "$TOOLBELT/setup/setup.sh" "$@"; }

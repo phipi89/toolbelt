@@ -30,6 +30,32 @@ class CliTests(unittest.TestCase):
 
             self.assertTrue(Path(directory, "README").is_file())
 
+    def test_touch_creates_parent_folders_for_nested_files(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(cli.finder, "front_path", return_value=directory):
+                created_files = cli._touch(["folder/subfolder/note.md"])
+
+            target = Path(directory, "folder/subfolder/note.md")
+            self.assertEqual(created_files, [target])
+            self.assertTrue(target.is_file())
+
+    def test_touch_creates_nested_folders(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(cli.finder, "front_path", return_value=directory):
+                created_files = cli._touch(["folder/subfolder"])
+
+            self.assertEqual(created_files, [])
+            self.assertTrue(Path(directory, "folder/subfolder").is_dir())
+
+    def test_touch_only_reports_new_files(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            existing = Path(directory, "note.md")
+            existing.touch()
+            with patch.object(cli.finder, "front_path", return_value=directory):
+                created_files = cli._touch(["note.md"])
+
+            self.assertEqual(created_files, [])
+
     def test_snapshot_copies_selected_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             selected = Path(directory, "photo.jpg")

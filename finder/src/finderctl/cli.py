@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -19,14 +20,20 @@ def _snapshot() -> str:
     return str(target)
 
 
-def _touch(names: list[str], *, force_file: bool = False) -> None:
+def _touch(names: list[str], *, force_file: bool = False) -> list[Path]:
     directory = Path(finder.front_path())
+    created_files = []
     for name in names or ["empty.txt"]:
         target = directory / name
         if force_file or target.suffix:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            was_missing = not target.exists()
             target.touch()
+            if was_missing:
+                created_files.append(target)
         else:
-            target.mkdir(exist_ok=True)
+            target.mkdir(parents=True, exist_ok=True)
+    return created_files
 
 
 def main() -> None:
@@ -42,6 +49,9 @@ def main() -> None:
     )
     touch_parser.add_argument(
         "--file", action="store_true", help="create extensionless names as files"
+    )
+    touch_parser.add_argument(
+        "--open", action="store_true", help="open files created by this command"
     )
     touch_parser.add_argument("names", nargs="*")
 
@@ -62,7 +72,10 @@ def main() -> None:
         elif args.command == "snapshot":
             print(_snapshot())
         elif args.command == "touch":
-            _touch(args.names, force_file=args.file)
+            created_files = _touch(args.names, force_file=args.file)
+            if args.open:
+                for path in created_files:
+                    subprocess.run(["open", str(path)], check=False)
         elif args.command == "check-left-in-right":
             if args.depth < 0:
                 parser.error("--depth must be non-negative")

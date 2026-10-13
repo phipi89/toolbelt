@@ -4,7 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
     "prompt-toolkit>=3.0.52",
-    "pyperclip>=1.11.0",
+    "pyobjc-framework-Cocoa>=12.1",
     "pyyaml>=6.0.3",
 ]
 

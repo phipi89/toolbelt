@@ -6,7 +6,6 @@ import subprocess
 import time
 from difflib import SequenceMatcher
 
-import pyperclip
 import yaml
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
@@ -15,7 +14,10 @@ from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.shortcuts import CompleteStyle
 from prompt_toolkit.styles import Style
 
+from .clipboard import ClipboardError, temporary_clipboard
+
 RESTART_ENV = "SNIPPETS_RESTART_FILE"
+PASTE_SETTLE_DELAY = 0.5
 HIDE_HOTKEY_WINDOW = """
 tell application "iTerm2"
   tell current window
@@ -28,15 +30,34 @@ end tell
 def _hide_hotkey_window():
     if RESTART_ENV not in os.environ:
         return
-    subprocess.run(
-        ["/usr/bin/osascript", "-e", HIDE_HOTKEY_WINDOW], check=False
-    )
+    subprocess.run(["/usr/bin/osascript", "-e", HIDE_HOTKEY_WINDOW], check=False)
 
 
 def _request_restart():
     restart_file = os.environ.get(RESTART_ENV)
     if restart_file:
         pathlib.Path(restart_file).touch()
+
+
+def _paste_snippet(content, args):
+    with temporary_clipboard(content):
+        if RESTART_ENV in os.environ:
+            _hide_hotkey_window()
+        elif args.close:
+            close_cmd = (
+                'tell application "System Events" to keystroke "w" using {command down}'
+            )
+            subprocess.run(["osascript", "-e", close_cmd], check=False)
+        else:
+            hide_cmd = 'tell application "System Events" to set visible of process "iTerm2" to false'
+            subprocess.run(["osascript", "-e", hide_cmd], check=False)
+
+        time.sleep(0.15)
+        paste_cmd = (
+            'tell application "System Events" to keystroke "v" using {command down}'
+        )
+        subprocess.run(["osascript", "-e", paste_cmd], check=False)
+        time.sleep(PASTE_SETTLE_DELAY)
 
 
 def normalize(text):
@@ -102,7 +123,9 @@ class DedupAliasCompleter(Completer):
                 normalized_canonical = normalize(canonical)
                 score = max(
                     SequenceMatcher(None, normalized_input, normalized_item).ratio(),
-                    SequenceMatcher(None, normalized_input, normalized_canonical).ratio(),
+                    SequenceMatcher(
+                        None, normalized_input, normalized_canonical
+                    ).ratio(),
                 )
                 if normalized_item.startswith(normalized_input):
                     score += 0.35
@@ -223,7 +246,9 @@ def main():
         raise SystemExit("snippets: --local only applies with --edit")
 
     root = pathlib.Path(__file__).parents[3]
-    local_root = pathlib.Path(os.environ.get("TOOLBELT_LOCAL", pathlib.Path.home() / ".toolbelt-local"))
+    local_root = pathlib.Path(
+        os.environ.get("TOOLBELT_LOCAL", pathlib.Path.home() / ".toolbelt-local")
+    )
     shared_yaml_path = root / "config" / "snippets" / "snippets.yaml"
     local_yaml_path = local_root / "snippets" / "snippets.yaml"
 
@@ -329,26 +354,13 @@ def main():
 
     if resolved in snippets:
         content = snippets[resolved].strip()
-        pyperclip.copy(content)
-        print(f"Copied to clipboard!")
+        try:
+            _paste_snippet(content, args)
+        except ClipboardError as error:
+            print(f"Could not paste snippet: {error}")
+            return
 
-        if RESTART_ENV in os.environ:
-            _hide_hotkey_window()
-        elif args.close:
-            close_cmd = (
-                'tell application "System Events" to keystroke "w" using {command down}'
-            )
-            subprocess.run(["osascript", "-e", close_cmd])
-        else:
-            hide_cmd = 'tell application "System Events" to set visible of process "iTerm2" to false'
-            subprocess.run(["osascript", "-e", hide_cmd])
-
-        time.sleep(0.15)
-
-        paste_cmd = (
-            'tell application "System Events" to keystroke "v" using {command down}'
-        )
-        subprocess.run(["osascript", "-e", paste_cmd])
+        print("Snippet pasted.")
         _request_restart()
         return
 

@@ -89,6 +89,8 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 - workflow helpers
 	- `grab`: `cd` into the directory of the frontmost finder window.
 	- `gsnap`: snapshot the selected Finder file into `snapshots/`.
+	- `gtouch [-o] [--file] [name ...]`: create files or folders in the front Finder folder; nested paths create parent folders and `-o` opens newly created files.
+	- `shrink [--minimal|--balanced] file.pdf [output.pdf]`: make a smaller PDF; default is balanced and the default output is `file_small.pdf`. `gshrink` does the same for the selected Finder file.
 	- `check_left_in_right`: check that each filename in the left Finder folder exists in the right one.
 	- `diskusage [glob|.]` list elements sorted by file size
 	- `pytitle|textitle [title]`: copy a commented *figlet* into the clipboard.
@@ -101,7 +103,7 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 	- `pytemp|nbtemp`: uv project with(out) jupyter in a temp directory
 	- All four Python helpers require Python 3.13 or newer and include `scipy`, `matplotlib`, `tqdm`, and GitHub `phipy` (which also installs GitHub `phipy-plots`).
 	- Python snippets include `from phipy.full import *`, `phipy-git` installation, and `phipy-local` editable installation of both repositories.
-	- `snippets --edit` opens shared snippets; `snippets --edit --local` opens machine-local snippets.
+	- `snippets` pastes without replacing the existing macOS clipboard; `snippets --edit` opens shared snippets and `snippets --edit --local` opens machine-local snippets.
 
 ## Adding tools
 
