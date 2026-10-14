@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Homebrew on Apple Silicon and Intel Macs, including launchd's minimal PATH.
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+yabai -m config mouse_modifier cmd
+yabai -m config mouse_action1 move
+yabai -m config mouse_action2 resize
