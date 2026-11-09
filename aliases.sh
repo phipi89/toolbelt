@@ -36,6 +36,7 @@ goto() {
 # PYTHON
 
 source "$TOOLBELT/pytemp/pytemp.sh"
+venvclean() { uv run --project "$TOOLBELT/venvclean" venvclean "$@"; }
 
 
 # TIME TRACKING
