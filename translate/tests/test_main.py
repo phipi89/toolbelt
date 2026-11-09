@@ -3,266 +3,276 @@ import unittest
 from io import StringIO
 from unittest.mock import Mock, patch
 
+import requests
 from translate.main import (
+    DIRECTIONS,
+    USER_AGENT,
     TranslateError,
-    clean_text,
     crop_to_columns,
-    fetch_pons,
+    fetch_dictcc,
+    lookup,
     main,
+    parse_dictcc_response,
     parse_direction_and_words,
-    parse_pons_response,
 )
 
 
-class PonsTest(unittest.TestCase):
-    def test_parse_pons_response_extracts_translations(self):
-        data = [
-            {
-                "lang": "de",
-                "hits": [
-                    {
-                        "roms": [
-                            {
-                                "headword": "fantastisch",
-                                "wordclass": "ADJ",
-                                "arabs": [
-                                    {
-                                        "translations": [
-                                            {
-                                                "source": "<strong>fantastisch</strong>",
-                                                "target": "fantastic",
-                                            },
-                                            {
-                                                "source": "fantastisch",
-                                                "target": "terrific",
-                                            },
-                                        ]
-                                    }
-                                ],
-                            }
-                        ],
-                    }
-                ]
-            }
-        ]
+def page(body):
+    return (
+        '<html><head><meta charset="utf-8"><title>dict.cc</title></head>'
+        '<body><div id="maincontent"><input id="sinp">'
+        f"<table>{body}</table></div></body></html>"
+    )
 
+
+def row(first, german, number=1):
+    return (
+        f'<tr id="tr{number}"><td class="td7cml"></td>'
+        f'<td class="td7nl">{first}</td>'
+        f'<td class="td7nl">{german}</td><td class="td7cmr"></td></tr>'
+    )
+
+
+class DictccTests(unittest.TestCase):
+    def test_extracts_pairs_and_removes_vote_counts(self):
+        html = page(row("to put into perspective", "<div>592</div><b>relativieren</b>"))
         self.assertEqual(
-            parse_pons_response(data),
-            [
-                ("fantastisch", "fantastic", "ADJ"),
-                ("fantastisch", "terrific", "ADJ"),
-            ],
+            parse_dictcc_response(html),
+            [("relativieren", "to put into perspective", "")],
         )
 
-    def test_parse_pons_response_uses_headword_when_source_is_missing(self):
-        data = [
-            {
-                "lang": "en",
-                "hits": [
-                    {
-                        "roms": [
-                            {
-                                "headword": "house",
-                                "arabs": [
-                                    {"translations": [{"target": "das Haus"}]},
-                                ]
-                            }
-                        ],
-                    }
-                ]
-            }
-        ]
+    def test_reverses_columns_for_each_direction(self):
+        examples = {
+            "deen": ("house", "Haus"),
+            "defr": ("maison", "Haus"),
+            "deit": ("casa", "Haus"),
+        }
+        for direction, (language, source, _) in DIRECTIONS.items():
+            first, german = examples[language]
+            with self.subTest(direction=direction):
+                expected = (german, first) if source == "de" else (first, german)
+                self.assertEqual(
+                    parse_dictcc_response(page(row(first, german)), source)[0][:2],
+                    expected,
+                )
 
-        self.assertEqual(parse_pons_response(data), [("house", "das Haus", "")])
+    def test_preserves_annotations_and_detects_part_of_speech(self):
+        html = page(
+            '<tr><td colspan="4" class="td6">Verben</td></tr>'
+            + row(
+                "to qualify sth. <kbd>[statement etc.]</kbd>",
+                "etw. <sup>Akk.</sup> relativieren",
+            )
+        )
+        self.assertEqual(
+            parse_dictcc_response(html),
+            [("etw. Akk. relativieren", "to qualify sth. [statement etc.]", "verb")],
+        )
+        html = page(row('house <var title="adjective">{adj}</var>', "Haus-"))
+        self.assertEqual(parse_dictcc_response(html)[0][2], "adjective")
 
-    def test_parse_pons_response_deduplicates_rows(self):
-        data = [
-            {
-                "lang": "en",
-                "hits": [
-                    {
-                        "roms": [
-                            {
-                                "headword": "house",
-                                "wordclass": "N",
-                                "arabs": [
-                                    {
-                                        "translations": [
-                                            {"source": "house", "target": "Haus"},
-                                            {"source": "house", "target": "Haus"},
-                                        ]
-                                    }
-                                ],
-                            }
-                        ],
-                    }
-                ]
-            }
-        ]
+    def test_deduplicates_without_losing_different_meanings(self):
+        html = page(
+            row("test", "Probe") + row("test", "Probe", 2) + row("test", "Prüfung", 3)
+        )
+        self.assertEqual(len(parse_dictcc_response(html)), 2)
 
-        self.assertEqual(parse_pons_response(data), [("house", "Haus", "N")])
+    def test_explicit_no_results_returns_empty(self):
+        html = page("No entries found! Leider keine Übersetzungen gefunden!")
+        self.assertEqual(parse_dictcc_response(html), [])
 
-    def test_parse_pons_response_filters_source_language(self):
-        data = [
-            {
-                "lang": "en",
-                "hits": [
-                    {
-                        "roms": [
-                            {
-                                "headword": "house",
-                                "arabs": [
-                                    {"translations": [{"target": "Haus"}]},
-                                ],
-                            }
-                        ],
-                    }
-                ],
-            },
-            {
-                "lang": "de",
-                "hits": [
-                    {
-                        "roms": [
-                            {
-                                "headword": "House",
-                                "arabs": [
-                                    {"translations": [{"target": "house music"}]},
-                                ],
-                            }
-                        ],
-                    }
-                ],
-            },
-        ]
+    def test_challenge_phrase_in_translation_is_not_mistaken_for_a_block(self):
+        html = page(row("just a moment", "einen Moment"))
+        self.assertEqual(
+            parse_dictcc_response(html), [("einen Moment", "just a moment", "")]
+        )
 
-        self.assertEqual(parse_pons_response(data, source_lang="en"), [("house", "Haus", "")])
+    def test_block_pages_are_errors_even_with_http_200(self):
+        for html in (
+            "Please don't run crawlers against dict.cc and don't try to make the dictionary available offline.",
+            "<html><title>Just a moment...</title></html>",
+        ):
+            with (
+                self.subTest(html=html),
+                self.assertRaisesRegex(TranslateError, "blocked"),
+            ):
+                parse_dictcc_response(html)
 
-    def test_clean_text_strips_html_and_whitespace(self):
-        self.assertEqual(clean_text("<b>das</b> &nbsp; Haus"), "das Haus")
+    def test_unrecognized_or_malformed_results_are_not_reported_as_no_results(self):
+        for html in (
+            "<html>Service unavailable</html>",
+            page("<p>Layout changed</p>"),
+            page('<tr id="tr1"><td>broken</td></tr>No entries found!'),
+        ):
+            with (
+                self.subTest(html=html),
+                self.assertRaisesRegex(TranslateError, "unrecognized"),
+            ):
+                parse_dictcc_response(html)
 
-    def test_fetch_pons_requires_api_key(self):
-        with patch.dict(os.environ, {}, clear=True):
-            with self.assertRaisesRegex(TranslateError, "PONS_API_KEY"):
-                fetch_pons("house")
+    def test_ignores_unrelated_links_and_scripts(self):
+        html = page('<script>No entries found!</script><a href="/">house</a>')
+        with self.assertRaises(TranslateError):
+            parse_dictcc_response(html)
 
-    def test_fetch_pons_sends_api_key_header(self):
-        response = Mock(ok=True, status_code=200)
-        response.json.return_value = []
+    def test_fetch_sends_query_and_identifies_client_without_api_key(self):
+        response = Mock(
+            ok=True, status_code=200, content=page(row("house", "Haus")).encode()
+        )
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            patch("translate.main.requests.get", return_value=response) as get,
+        ):
+            self.assertEqual(fetch_dictcc("relativieren"), response.content)
+        self.assertEqual(get.call_args.kwargs["headers"], {"User-Agent": USER_AGENT})
+        self.assertEqual(get.call_args.kwargs["params"], {"s": "relativieren"})
+        self.assertEqual(get.call_args.kwargs["timeout"], 15)
 
-        with patch.dict(os.environ, {"PONS_API_KEY": "secret"}, clear=True):
-            with patch("translate.main.requests.get", return_value=response) as get:
-                self.assertEqual(fetch_pons("house"), [])
+    def test_fetch_uses_language_subdomain(self):
+        with patch(
+            "translate.main.requests.get", return_value=Mock(ok=True, content=b"")
+        ) as get:
+            fetch_dictcc("maison", language="defr")
+            self.assertEqual(get.call_args.args[0], "https://defr.dict.cc/")
+            fetch_dictcc("casa", language="deit")
+            self.assertEqual(get.call_args.args[0], "https://deit.dict.cc/")
 
-        get.assert_called_once()
-        self.assertEqual(get.call_args.kwargs["headers"], {"X-Secret": "secret"})
-        self.assertEqual(get.call_args.kwargs["params"], {"q": "house", "l": "deen"})
+    def test_http_and_network_errors_are_reported(self):
+        with (
+            patch(
+                "translate.main.requests.get",
+                return_value=Mock(ok=False, status_code=429),
+            ),
+            self.assertRaisesRegex(TranslateError, "HTTP 429"),
+        ):
+            fetch_dictcc("house")
+        with (
+            patch(
+                "translate.main.requests.get", side_effect=requests.Timeout("timed out")
+            ),
+            self.assertRaisesRegex(TranslateError, "request failed"),
+        ):
+            fetch_dictcc("house")
 
-    def test_parse_direction_defaults_to_german_to_english(self):
-        self.assertEqual(parse_direction_and_words(["fantastisch"]), ("ten", ["fantastisch"]))
+    def test_lookup_fetches_and_parses_in_requested_direction(self):
+        with patch(
+            "translate.main.fetch_dictcc", return_value=page(row("maison", "Haus"))
+        ) as fetch:
+            self.assertEqual(
+                lookup("Haus", "de", language="defr"), [("Haus", "maison", "")]
+            )
+        fetch.assert_called_once_with("Haus", language="defr", verbose=False)
 
-    def test_parse_direction_accepts_fen(self):
-        self.assertEqual(parse_direction_and_words(["fen", "house"]), ("fen", ["house"]))
 
-    def test_parse_direction_accepts_french_and_italian(self):
-        self.assertEqual(parse_direction_and_words(["tfr", "Haus"]), ("tfr", ["Haus"]))
-        self.assertEqual(parse_direction_and_words(["ffr", "maison"]), ("ffr", ["maison"]))
-        self.assertEqual(parse_direction_and_words(["tit", "Haus"]), ("tit", ["Haus"]))
-        self.assertEqual(parse_direction_and_words(["fit", "casa"]), ("fit", ["casa"]))
+class CliTests(unittest.TestCase):
+    def run_cli(self, arguments, results):
+        with (
+            patch("translate.main.lookup", return_value=results),
+            patch("sys.stdout", new_callable=StringIO) as stdout,
+            patch("sys.stderr", new_callable=StringIO) as stderr,
+            self.assertRaises(SystemExit) as raised,
+        ):
+            main(arguments)
+        return raised.exception.code, stdout.getvalue(), stderr.getvalue()
 
-    def test_main_hides_pos_by_default(self):
-        with patch("translate.main.lookup", return_value=[("house", "Haus", "noun")]):
-            with patch("sys.stdout", new_callable=StringIO) as stdout:
-                with self.assertRaises(SystemExit) as raised:
-                    main(["fen", "house"])
+    def test_direction_shortcuts_and_default(self):
+        self.assertEqual(parse_direction_and_words(["Haus"]), ("ten", ["Haus"]))
+        for direction in DIRECTIONS:
+            self.assertEqual(
+                parse_direction_and_words([direction, "word"]), (direction, ["word"])
+            )
 
-        self.assertEqual(raised.exception.code, 0)
-        output = stdout.getvalue()
+    def test_hides_part_of_speech_by_default(self):
+        code, output, _ = self.run_cli(["fen", "house"], [("house", "Haus", "noun")])
+        self.assertEqual(code, 0)
         self.assertIn("English", output)
         self.assertIn("German", output)
         self.assertNotIn("POS", output)
         self.assertNotIn("noun", output)
 
-    def test_main_limits_compact_output_to_six_rows_by_default(self):
-        rows = [(f"source {index}", f"target {index}", "noun") for index in range(8)]
-
-        with patch("translate.main.lookup", return_value=rows):
-            with patch("sys.stdout", new_callable=StringIO) as stdout:
-                with self.assertRaises(SystemExit) as raised:
-                    main(["fen", "house"])
-
-        self.assertEqual(raised.exception.code, 0)
-        output = stdout.getvalue()
-        self.assertIn("source 5", output)
-        self.assertNotIn("source 6", output)
-
-    def test_main_max_entries_overrides_compact_default(self):
-        rows = [(f"source {index}", f"target {index}", "noun") for index in range(8)]
-
-        with patch("translate.main.lookup", return_value=rows):
-            with patch("sys.stdout", new_callable=StringIO) as stdout:
-                with self.assertRaises(SystemExit) as raised:
-                    main(["-m", "7", "fen", "house"])
-
-        self.assertEqual(raised.exception.code, 0)
-        output = stdout.getvalue()
-        self.assertIn("source 6", output)
-        self.assertNotIn("source 7", output)
-
-    def test_main_shows_pos_with_labels_flag(self):
-        with patch("translate.main.lookup", return_value=[("house", "Haus", "noun")]):
-            with patch("sys.stdout", new_callable=StringIO) as stdout:
-                with self.assertRaises(SystemExit) as raised:
-                    main(["-l", "fen", "house"])
-
-        self.assertEqual(raised.exception.code, 0)
-        output = stdout.getvalue()
+    def test_labels_flag_displays_part_of_speech(self):
+        code, output, _ = self.run_cli(
+            ["-l", "fen", "house"], [("house", "Haus", "noun")]
+        )
+        self.assertEqual(code, 0)
         self.assertIn("POS", output)
         self.assertIn("noun", output)
 
-    def test_main_requires_terms_without_loop(self):
-        with patch("sys.stderr", new_callable=StringIO):
-            with self.assertRaises(SystemExit) as raised:
-                main([])
+    def test_compact_output_limits_to_six_and_max_entries_overrides(self):
+        rows = [(f"source {index}", f"target {index}", "noun") for index in range(8)]
+        _, output, _ = self.run_cli(["fen", "house"], rows)
+        self.assertIn("source 5", output)
+        self.assertNotIn("source 6", output)
+        _, output, _ = self.run_cli(["-m", "7", "fen", "house"], rows)
+        self.assertIn("source 6", output)
+        self.assertNotIn("source 7", output)
 
-        self.assertEqual(raised.exception.code, 2)
+    def test_no_results_includes_word_and_provider(self):
+        code, output, error = self.run_cli(["ten", "unknownword"], [])
+        self.assertEqual(code, 0)
+        self.assertIn("No translations found for 'unknownword' on dict.cc.", output)
+        self.assertEqual(error, "")
 
-    def test_loop_reads_input_until_eof(self):
-        inputs = iter(["house", "", "home"])
+    def test_block_is_error_not_no_results(self):
+        with (
+            patch(
+                "translate.main.lookup",
+                side_effect=TranslateError("dict.cc blocked the request"),
+            ),
+            patch("sys.stdout", new_callable=StringIO) as stdout,
+            patch("sys.stderr", new_callable=StringIO) as stderr,
+            self.assertRaises(SystemExit) as raised,
+        ):
+            main(["fen", "house"])
+        self.assertEqual(raised.exception.code, 1)
+        self.assertIn("blocked", stderr.getvalue())
+        self.assertNotIn("No translations", stdout.getvalue())
 
-        def fake_input():
-            try:
-                return next(inputs)
-            except StopIteration:
-                raise EOFError
+    def test_requires_words_and_positive_limit(self):
+        for arguments in ([], ["fen"], ["-m", "0", "house"]):
+            with self.subTest(arguments=arguments):
+                code, _, _ = self.run_cli(arguments, [])
+                self.assertEqual(code, 2)
 
-        with patch("translate.main.input", side_effect=fake_input):
-            with patch("translate.main.lookup", return_value=[("house", "Haus", "noun")]) as lookup:
-                with patch("sys.stdout", new_callable=StringIO) as stdout:
-                    with self.assertRaises(SystemExit) as raised:
-                        main(["--loop", "fen"])
-
-        self.assertEqual(raised.exception.code, 0)
-        self.assertEqual(lookup.call_count, 2)
-        self.assertEqual(lookup.call_args_list[0].args[0], "house")
-        self.assertEqual(lookup.call_args_list[0].kwargs["source_lang"], "en")
-        self.assertEqual(lookup.call_args_list[1].args[0], "home")
-        self.assertIn("English", stdout.getvalue())
+    def test_loop_survives_missing_words_and_request_errors(self):
+        with (
+            patch(
+                "translate.main.input",
+                side_effect=["missing", "blocked", "house", EOFError],
+            ),
+            patch(
+                "translate.main.lookup",
+                side_effect=[
+                    [],
+                    TranslateError("blocked"),
+                    [("house", "Haus", "noun")],
+                ],
+            ) as lookup_mock,
+            patch("sys.stdout", new_callable=StringIO) as stdout,
+            patch("sys.stderr", new_callable=StringIO),
+            self.assertRaises(SystemExit) as raised,
+        ):
+            main(["--loop", "fen"])
+        self.assertEqual(raised.exception.code, 1)
+        self.assertEqual(lookup_mock.call_count, 3)
+        self.assertEqual(lookup_mock.call_args.kwargs["source_lang"], "en")
+        self.assertIn("No translations found", stdout.getvalue())
+        self.assertIn("Haus", stdout.getvalue())
 
     def test_loop_defaults_to_german_to_english(self):
-        with patch("translate.main.input", side_effect=["fantastisch", EOFError]):
-            with patch("translate.main.lookup", return_value=[("fantastisch", "fantastic", "adjective")]) as lookup:
-                with patch("sys.stdout", new_callable=StringIO):
-                    with self.assertRaises(SystemExit) as raised:
-                        main(["--loop"])
-
-        self.assertEqual(raised.exception.code, 0)
-        self.assertEqual(lookup.call_args.kwargs["source_lang"], "de")
+        with (
+            patch("translate.main.input", side_effect=["Haus", EOFError]),
+            patch(
+                "translate.main.lookup", return_value=[("Haus", "house", "noun")]
+            ) as lookup_mock,
+            patch("sys.stdout", new_callable=StringIO),
+            self.assertRaises(SystemExit),
+        ):
+            main(["--loop"])
+        self.assertEqual(lookup_mock.call_args.kwargs["source_lang"], "de")
 
     def test_crop_to_columns_uses_ellipsis(self):
         with patch.dict(os.environ, {"COLUMNS": "10"}, clear=True):
-            self.assertEqual(crop_to_columns("1234567890\n12345678901"), "1234567890\n123456789…")
-
-
-if __name__ == "__main__":
-    unittest.main()
+            self.assertEqual(
+                crop_to_columns("1234567890\n12345678901"), "1234567890\n123456789…"
+            )

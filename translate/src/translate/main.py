@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 from argparse import ArgumentParser
 
@@ -6,9 +7,13 @@ import requests
 from bs4 import BeautifulSoup
 from tabulate import tabulate
 
-
-PONS_URL = "https://api.pons.com/v1/dictionary"
 DEFAULT_LANGUAGE = "deen"
+DICTCC_URLS = {
+    "deen": "https://www.dict.cc/",
+    "defr": "https://defr.dict.cc/",
+    "deit": "https://deit.dict.cc/",
+}
+USER_AGENT = "toolbelt-dictionary/1.0 (personal interactive lookup)"
 DIRECTIONS = {
     "ten": ("deen", "de", ["German", "English"]),
     "fen": ("deen", "en", ["English", "German"]),
@@ -24,57 +29,90 @@ class TranslateError(Exception):
     pass
 
 
-def fetch_pons(word, language=DEFAULT_LANGUAGE, verbose=False):
-    api_key = os.environ.get("PONS_API_KEY")
-    if not api_key:
-        raise TranslateError("PONS_API_KEY is not set")
-
-    params = {"q": word, "l": language}
+def fetch_dictcc(word, language=DEFAULT_LANGUAGE, verbose=False):
+    url = DICTCC_URLS[language]
     if verbose:
-        print(f"Requesting {PONS_URL} q={word!r} l={language!r}", file=sys.stderr)
-
-    response = requests.get(
-        PONS_URL,
-        params=params,
-        headers={"X-Secret": api_key},
-        timeout=15,
-    )
-    if response.status_code == 403:
-        raise TranslateError("PONS rejected the API key")
+        print(f"Requesting {url} s={word!r}", file=sys.stderr)
+    try:
+        response = requests.get(
+            url,
+            params={"s": word},
+            headers={"User-Agent": USER_AGENT},
+            timeout=15,
+        )
+    except requests.RequestException as error:
+        raise TranslateError(f"dict.cc request failed: {error}") from error
     if not response.ok:
-        raise TranslateError(f"PONS returned HTTP {response.status_code}")
-    return response.json()
+        raise TranslateError(f"dict.cc returned HTTP {response.status_code}")
+    return response.content
 
 
-def parse_pons_response(data, source_lang=None):
+def parse_dictcc_response(html, source_lang="de"):
+    soup = BeautifulSoup(html, "html.parser")
+    for tag in soup(["script", "style"]):
+        tag.decompose()
+    text = " ".join(soup.get_text(" ").split())
+    title = soup.title.get_text(strip=True) if soup.title else ""
+    if "don't run crawlers" in text.lower() or re.fullmatch(
+        r"just a moment[.!…\s]*", title, flags=re.IGNORECASE
+    ):
+        raise TranslateError(
+            "dict.cc blocked the request; try the lookup in your browser"
+        )
+    content = soup.find(id="maincontent")
+    if content is None or content.find("input", id="sinp") is None:
+        raise TranslateError(
+            "dict.cc returned an unrecognized page instead of dictionary results"
+        )
+
     rows = []
     seen = set()
-
-    for result in data or []:
-        if source_lang and result.get("lang") != source_lang:
+    word_class = ""
+    sections = {
+        "verben": "verb",
+        "verbs": "verb",
+        "substantive": "noun",
+        "nouns": "noun",
+        "adjektive": "adjective",
+        "adjectives": "adjective",
+        "adverbien": "adverb",
+        "adverbs": "adverb",
+    }
+    for entry in content.find_all("tr"):
+        heading = entry.find("td", class_="td6", recursive=False)
+        if heading is not None:
+            label = heading.get_text(" ", strip=True).lower().rsplit(":", 1)[-1].strip()
+            word_class = sections.get(label, "")
+        if not re.fullmatch(r"tr\d+", entry.get("id", "")):
             continue
-        for hit in result.get("hits", []):
-            for rom in hit.get("roms", []):
-                source_headword = clean_text(
-                    rom.get("headword", "") or hit.get("headword", "")
-                )
-                word_class = clean_text(rom.get("wordclass", ""))
-                for arab in rom.get("arabs", []):
-                    for translation in arab.get("translations", []):
-                        source = clean_text(translation.get("source", ""))
-                        target = clean_text(translation.get("target", ""))
-                        if not source:
-                            source = source_headword
-                        if not source or not target:
-                            continue
-
-                        row = (source, target, word_class)
-                        if row in seen:
-                            continue
-                        seen.add(row)
-                        rows.append(row)
-
-    return rows
+        cells = entry.find_all("td", class_="td7nl", recursive=False)
+        if len(cells) != 2:
+            continue
+        # Numeric vote counts are floated inside the translation cell.
+        for cell in cells:
+            for badge in cell.find_all("div", recursive=False):
+                if badge.get_text(strip=True).isdigit():
+                    badge.decompose()
+        pos = word_class
+        for cell in cells:
+            for label in cell.find_all("var"):
+                if label.get_text(strip=True) in {"{adj}", "{adv}"}:
+                    pos = {"{adj}": "adjective", "{adv}": "adverb"}[
+                        label.get_text(strip=True)
+                    ]
+        first, german = (" ".join(cell.stripped_strings) for cell in cells)
+        source, target = (german, first) if source_lang == "de" else (first, german)
+        row = (source, target, pos)
+        if source and target and row not in seen:
+            seen.add(row)
+            rows.append(row)
+    if rows:
+        return rows
+    if content.find("tr", id=re.compile(r"^tr\d+$")) is None and (
+        "No entries found!" in text or "Leider keine Übersetzungen gefunden!" in text
+    ):
+        return []
+    raise TranslateError("dict.cc returned an unrecognized results format")
 
 
 def clean_text(value):
@@ -85,8 +123,8 @@ def clean_text(value):
 
 
 def lookup(word, source_lang, language=DEFAULT_LANGUAGE, verbose=False):
-    return parse_pons_response(
-        fetch_pons(word, language=language, verbose=verbose),
+    return parse_dictcc_response(
+        fetch_dictcc(word, language=language, verbose=verbose),
         source_lang=source_lang,
     )
 
@@ -98,13 +136,15 @@ def parse_direction_and_words(terms):
 
 
 def build_parser():
-    parser = ArgumentParser(description="Look up translations with the PONS API")
+    parser = ArgumentParser(description="Look up translations with dict.cc")
     parser.add_argument(
         "terms",
         nargs="*",
         help="optional direction (ten/fen, tfr/ffr, tit/fit) and words",
     )
-    parser.add_argument("-l", "--labels", action="store_true", help="show part of speech")
+    parser.add_argument(
+        "-l", "--labels", action="store_true", help="show part of speech"
+    )
     parser.add_argument("--loop", action="store_true", help="keep prompting for words")
     parser.add_argument("-m", "--max-entries", type=int)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -134,7 +174,9 @@ def crop_line(line, columns):
     return line[: columns - 1] + "…"
 
 
-def run_for_word(word, language, source_lang, headers, max_entries, show_labels, verbose):
+def run_for_word(
+    word, language, source_lang, headers, max_entries, show_labels, verbose
+):
     try:
         translations = lookup(
             word,
@@ -147,7 +189,7 @@ def run_for_word(word, language, source_lang, headers, max_entries, show_labels,
         return 1
 
     if not translations:
-        print("\tNo translations found")
+        print(f"No translations found for {word!r} on dict.cc.")
         return 0
 
     if show_labels:
@@ -175,15 +217,21 @@ def run_loop(language, source_lang, headers, max_entries, show_labels, verbose):
             print()
         exit_code = max(
             exit_code,
-            run_for_word(word, language, source_lang, headers, max_entries, show_labels, verbose),
+            run_for_word(
+                word, language, source_lang, headers, max_entries, show_labels, verbose
+            ),
         )
     return exit_code
 
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
+    if args.max_entries is not None and args.max_entries < 1:
+        build_parser().error("--max-entries must be at least 1")
     if not args.loop and not args.terms:
-        build_parser().error("the following arguments are required: terms (or use --loop)")
+        build_parser().error(
+            "the following arguments are required: terms (or use --loop)"
+        )
 
     try:
         direction, words = parse_direction_and_words(args.terms or ["ten"])

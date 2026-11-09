@@ -1,7 +1,7 @@
 [project]
 name = "translate"
 version = "0.1.0"
-description = "Add your description here"
+description = "Fast terminal dictionary lookups through dict.cc."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
