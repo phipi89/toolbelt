@@ -115,6 +115,7 @@ def _index_stats(entries, meta):
         f"source:        {meta['source']}",
         f"recent days:   {meta['recent_days']}",
         f"total matches: {meta['total_matches']}",
+        f"neighbors:     {meta.get('neighbor_count', 0)}",
         _format_index_status(meta),
     ]
 
