@@ -36,7 +36,7 @@ py:
 
   autoreload: |
     %load_ext autoreload
-    %autoreload 2
+    %autoreload 3
 
   uv-script: |
     [project.scripts]
@@ -50,14 +50,10 @@ py:
     packages = ["src/prj"]
 
   plt-fig: |
-    fig = plt.figure(figsize=(12, 8))
-
-    ax = fig.add_subplot(111)
-
-    fig.show()
+    fig, ax = plt.subplots(figsize=(12, 8), layout="constrained")
 
   plt-3dfig: |
-    fig = plt.figure(figsize=(12, 8))
+    fig = plt.figure(figsize=(12, 8), layout="constrained")
 
     ax = fig.add_subplot(111, projection="3d")
 
