@@ -56,6 +56,7 @@ This project builds on *iTerm2* as the main interface, *Karabiner* for custom ke
 - Karabiner Elements (`brew install karabiner-elements`)
 	- symlink config into this repo (see below)
 - yabai (`brew install asmvik/formulae/yabai`)
+	- Link `config/yabai` into `~/.config/yabai` (see below). Hold Command and left-drag anywhere to move a window, or right-drag to resize it.
 		- MacOS
 	- deactivate: Settings > Schreibtisch & Dock > Beim Programmwechsel Space auswählen, der geöffnete Fenster des Programms enthält
 - Tesseract OCR (`brew install tesseract tesseract-lang`)
@@ -67,6 +68,15 @@ mv ~/.config/karabiner ~/.config/karabiner.backup.$(date +%Y%m%d%H%M%S)
 
 #  link so that toolbelt config becomes the authorative location
 ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
+
+## link yabai config
+mkdir -p "$HOME/.config"
+# Back up an existing configuration before linking.
+if [ -e "$HOME/.config/yabai" ] || [ -L "$HOME/.config/yabai" ]; then
+    mv "$HOME/.config/yabai" "$HOME/.config/yabai.backup.$(date +%Y%m%d%H%M%S)"
+fi
+ln -s "$HOME/toolbelt/config/yabai" "$HOME/.config/yabai"
+yabai --restart-service
 
 ```
 
@@ -80,6 +90,7 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 	- `buf` opens CotEditor as a text buffer.
 	- `prose` (<kbd>super</kbd>+<kbd>t</kbd>) opens a minimal autosaving serif text editor; `prose --recent` reopens recently closed documents.
 	- `search` (<kbd>super</kbd>+<kbd>b</kbd>) Search through spotlight indexed files.
+	  Includes recently used files, their siblings, and one level inside sibling folders; skips hidden/generated paths and `~/Library`.
 - `ocr` (<kbd>left cmd</kbd>+<kbd>shift</kbd>+<kbd>2</kbd>) copies text from a selected screen region. macOS may require Screen Recording permission for Karabiner-Elements.
 - `open_in_obsidian <file>` opens Markdown files in their containing vault, temporarily linking files outside a vault. Run `obsidian/build.sh --associate` to make it the default Markdown handler.
 - `displayctl` used via keyboard shortcuts
@@ -91,14 +102,17 @@ ln -s "$HOME/toolbelt/config/karabiner" "$HOME/.config/karabiner"
 	- `gsnap`: snapshot the selected Finder file into `snapshots/`.
 	- `gtouch [-o] [--file] [name ...]`: create files or folders in the front Finder folder; nested paths create parent folders and `-o` opens newly created files.
 	- `shrink [--minimal|--balanced] file.pdf [output.pdf]`: make a smaller PDF; default is balanced and the default output is `file_small.pdf`. `gshrink` does the same for the selected Finder file.
+	  Balanced uses image-level compression to preserve layout and transparency (`uv` manages Python dependencies); minimal uses Ghostscript's aggressive `/screen` rewrite. See [PDF compression](misc/README.md#pdf-compression).
 	- `check_left_in_right`: check that each filename in the left Finder folder exists in the right one.
 	- `diskusage [glob|.]` list elements sorted by file size
 	- `pytitle|textitle [title]`: copy a commented *figlet* into the clipboard.
 	- `qrcode <text> --out <file>` creates a transparent PNG; `pbqr <text>` copies one to the clipboard.
 - requests
-	- `ten|fen|tfr|ffr|tit|fit [word]`: request translation via PONS.
+	- `ten|fen|tfr|ffr|tit|fit [word]`: look up translations via dict.cc; reports missing translations separately from blocked/failed requests. No API key needed.
 	- `ask [question]` sends a one-off question to opencode.
 - python
+	- `venvclean [roots ...] [--skip directory] [--older-than 90d]`: interactively review old Python environments (default scan: `~`); `--all` includes recent ones and `--dry-run` only reports. Detects any environment name via `pyvenv.cfg`. Plain/standalone environments require a requirements export before deletion; locked uv projects can be recreated with `uv sync`.
+	  Activity is based on project/environment modification times, not reliable usage history. Sizes are allocated-space estimates; APFS clones and shared files can make actual reclaimed space differ. `--skip` is repeatable.
 	- `pyinit|nbinit [title|.]`: uv project with(out) jupyter
 	- `pytemp|nbtemp`: uv project with(out) jupyter in a temp directory
 	- All four Python helpers require Python 3.13 or newer and include `scipy`, `matplotlib`, `tqdm`, and GitHub `phipy` (which also installs GitHub `phipy-plots`).
