@@ -366,7 +366,7 @@
                                     "key_code": "a",
                                     "modifiers": { "mandatory": ["right_gui"] }
                                 },
-                                "to": [{ "key_code": "f15" }],
+                                "to": [{ "key_code": "f19" }],
                                 "type": "basic"
                             },
                             {
