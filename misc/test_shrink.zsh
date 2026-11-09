@@ -12,6 +12,8 @@ input="$tmp/report.pdf"
 gs -q -sDEVICE=pdfwrite -o "$input" -c showpage
 shrink "$input"
 [[ -f "$tmp/report_small.pdf" ]]
+shrink --minimal "$input" "$tmp/minimal.pdf"
+[[ -f "$tmp/minimal.pdf" ]]
 if shrink "$input" >/dev/null 2>&1; then
   print -u2 "shrink replaced an existing output"
   exit 1

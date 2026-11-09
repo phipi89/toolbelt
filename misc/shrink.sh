@@ -1,3 +1,5 @@
+_toolbelt_shrink_dir=${${(%):-%x}:A:h}
+
 shrink() {
   local mode="balanced"
   local -a files
@@ -9,7 +11,7 @@ shrink() {
       --balanced) mode="balanced" ;;
       -h|--help)
         echo "usage: shrink [--minimal|--balanced] INPUT.pdf [OUTPUT.pdf]"
-        echo "  make a smaller PDF; --balanced is the default for clearer images."
+        echo "  --balanced (default) compresses images while preserving PDF layout."
         echo "  --minimal gives the smallest practical file."
         return 0
         ;;
@@ -40,22 +42,24 @@ shrink() {
     echo "shrink: output already exists: $output" >&2
     return 1
   fi
-  if ! command -v gs >/dev/null; then
-    echo "shrink: Ghostscript (gs) is required" >&2
-    return 1
-  fi
-
-  local quality="/screen"
-  if [[ "$mode" == "balanced" ]]; then
-    quality="/ebook"
-  fi
-
   local before after change description
   before=$(stat -f %z "$input") || return 1
-  if ! gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS="$quality" \
-    -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$output" "$input"; then
-    rm -f "$output"
-    return 1
+  if [[ "$mode" == "balanced" ]]; then
+    if ! command -v uv >/dev/null; then
+      echo "shrink: uv is required for balanced compression" >&2
+      return 1
+    fi
+    uv run --script "$_toolbelt_shrink_dir/shrink_pdf.py" "$input" "$output" || return 1
+  else
+    if ! command -v gs >/dev/null; then
+      echo "shrink: Ghostscript (gs) is required for minimal compression" >&2
+      return 1
+    fi
+    if ! gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen \
+      -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$output" "$input"; then
+      rm -f "$output"
+      return 1
+    fi
   fi
   after=$(stat -f %z "$output") || return 1
   if (( after <= before )); then
